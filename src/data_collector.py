@@ -10,16 +10,18 @@ class DataCollector:
 
 	def __init__(self):
 		self.item_ids_path = '../data/item_ids.json'
+		self.times_path = '../data/request_times.json'
 
 
-	def _check_ids(self):
-		if not os.path.exists(self.item_ids_path):
-			with open(item_ids_path, 'w+') as f:
-				json.dump(api.listings(), f)
+	def _check_path(self, path, empty=True):
+		if not os.path.exists(path):
+			with open(path, 'w+') as f:
+				data = [] if empty else api.listing()
+				json.dump(data, f)
 
 
 	def _housekeeping(self, listings_path):
-		self._check_ids()
+		self._check_path(self.item_ids_path, False)
 		with open(self.item_ids_path, 'r') as f:
 			ids = json.load(f)
 		os.mkdir(listings_path)
@@ -27,9 +29,15 @@ class DataCollector:
 
 
 	def _timekeeping(self, t):
-		minutes = int(tt/60)
-		seconds = int(tt - (minutes*60))
+		minutes = int(t/60)
+		seconds = int(t - (minutes*60))
 		print("Total time", minutes, "minutes", seconds, "seconds")
+		self._check_path(self.times_path, [])
+		with open(self.times_path, 'r') as f:
+			times = json.load(f)
+		with open(self.times_path, 'w') as f:
+			times.append(t)
+			json.dump(times, f)
 
 
 	def snapshot(self):
@@ -53,26 +61,3 @@ class DataCollector:
 			i += 200
 			j += 1
 		self._timekeeping(time.time() - t)
-		
-
-
-'''
-def nasty_version(ids, path):
-	i = 0
-	j = 1
-	t = time.time()
-	while(i < len(ids)):
-		print("Batch", j)
-		if(i+200 > len(ids)):
-			listings = api.listings(ids[i:len(ids)-1])
-		else:
-			listings = api.listings(ids[i:i+200])
-		with open(path, 'r') as f:
-			feed = json.load(f)
-		feed.extend(listings)
-		with open(path, 'w') as f:
-			json.dump(feed, f)
-		i += 200
-		j += 1
-	print(time.time()-t)
-'''
