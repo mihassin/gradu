@@ -2,11 +2,8 @@ import urllib.request
 import json
 
 class Gw2Api:
-	@staticmethod
-	def getAllItemsList():
-		return Gw2Api._request('items')
-	
-	''' Jos ids on tyhjä, palautetaan kaikkien itemien idt
+	'''
+		If ids is empty, a list of valid ids is returned
 	'''
 	@staticmethod
 	def listings(ids = []):
@@ -15,10 +12,12 @@ class Gw2Api:
 			tail += '?ids=' + ','.join(str(ind) for ind in ids)
 		return Gw2Api._request('commerce', tail)
 
-	@staticmethod
-	def _url_length(url):
-		return len(url) 
+	'''
+		A function that builds requests from *args to
+		https://api.guildwars2.com
 
+		version 2 of the api is used
+	'''
 	@staticmethod
 	def _request(*args):
 		url = "http://api.guildwars2.com/v2/" + '/'.join(args)
