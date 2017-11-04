@@ -1,7 +1,7 @@
 import os
 import time
 import json
-
+import urllib.request
 
 from gw2api import Gw2Api as api
 
@@ -91,4 +91,9 @@ class DataCollector:
 
 if __name__ == "__main__":
 	dc = DataCollector()
-	dc.snapshot()
+	try:
+		dc.snapshot()
+	except urllib.error.HTTPError as err:
+		with open('../logs'+time.strftime('%d-%m-%Y-%H:%M')+'.log', 'w+') as f:
+			f.write(str(err.code))
+			print('Exiting due to Http error')
