@@ -94,6 +94,6 @@ if __name__ == "__main__":
 	try:
 		dc.snapshot()
 	except urllib.error.HTTPError as err:
-		with open('../logs'+time.strftime('%d-%m-%Y-%H:%M')+'.log', 'w+') as f:
+		with open('../logs/'+time.strftime('%d-%m-%Y-%H:%M')+'.log', 'w+') as f:
 			f.write(str(err.code))
 			print('Exiting due to Http error')
