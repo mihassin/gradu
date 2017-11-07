@@ -65,15 +65,20 @@ class Tools:
 			index = ids.index(i)
 		except ValueError:
 			return None
-		d = '../data/'
-		files = os.listdir(d + Tools.immidiate_subdirs(d)[0])
+		datapath = '../data/'
+		dirs = Tools.immidiate_subdirs(datapath)
+		files = os.listdir(datapath + dirs[0])
 		for filename in files:
 			bounds = filename[:-5].split('-')
 			low = int(bounds[0])
 			high = int(bounds[1])
 			if(Tools.in_between(low, high, index)): break
-		#Continue
-		return filename
+		for d in dirs:
+			path = datapath + d + filename
+			with open(path, 'r') as f:
+				curr = json.load(f)
+		#Continue	
+		return dirs
 
 
 	@staticmethod
