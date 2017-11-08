@@ -3,6 +3,7 @@ import time
 import json
 import urllib.request
 
+from jsonmerge import merge
 from gw2api import Gw2Api as api
 
 class DataCollector:
@@ -87,6 +88,19 @@ class DataCollector:
 			i += 200
 			j += 1
 		self._timekeeping(time.time() - t)
+
+
+	def merge_snapshot(self, path):
+		files = os.listdir(path)
+		with open(path + files[0], 'r') as f:
+			data = json.load(f)
+		for file in files[1:]:
+			with open(path + file, 'r') as f:
+				batch = json.load(f)
+			data = merge(data, batch)
+		with open(path + 'snap.json', 'w+') as f:
+			json.dump(data, f, indent=4)
+		return 'Great Success!'
 		
 
 if __name__ == "__main__":
@@ -97,3 +111,9 @@ if __name__ == "__main__":
 		with open('../logs/'+time.strftime('%d-%m-%Y-%H:%M')+'.log', 'w+') as f:
 			f.write(str(err.code))
 			print('Exiting due to Http error')
+
+# NOTES
+
+'''
+	1. if Httperror occurs, loop the batch a few times
+'''
