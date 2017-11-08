@@ -32,7 +32,7 @@ class Tools:
 	"""
 	@staticmethod
 	def relative_return(x0, x1):
-		return absolute_return(x0, x1) / x0
+		return Tools.absolute_return(x0, x1) / x0
 
 
 	"""Lists the immidiate subdirectories below the given path.
@@ -50,6 +50,41 @@ class Tools:
 	@staticmethod
 	def in_between(low, high, value):
 		return low <= value and value <= high
+
+
+	@staticmethod
+	def _handle_empty_listings(item):
+		value = None
+		if item['buys'] and item['sells']:
+			low = item['buys'][0]['unit_price']
+			high = item['sells'][0]['unit_price']
+			value = Tools.relative_return(low, high)
+		return value
+
+
+	@staticmethod
+	def _handle_file(data, json_data):
+		for item in json_data:
+			ind = item['id']
+			value = Tools._handle_empty_listings(item)
+			if not ind in data:	
+				data[ind] = [value]
+			else:
+				data[ind].append(value)
+		return data
+
+
+	@staticmethod
+	def list_of_returns():
+		data = {}
+		datapath = '../data/'
+		dirs = Tools.immidiate_subdirs(datapath)
+		for d in dirs:
+			f_path = datapath + d + '/snap.json'
+			with open(f_path, 'r') as f:
+				json_data = json.load(f)
+				data = Tools._handle_file(data, json_data)
+		return data
 
 
 	"""Returns the mean of the relative returns for a item with data_id i
@@ -93,3 +128,6 @@ class Tools:
 		silver = '0' if st[-4:-2] == '' else st[-4:-2]
 		gold = '0' if st[:-4] == '' else st[:-4]
 		return minus + gold + " g " + silver + " s " + copper + " c"
+
+# 1. Rewrite with numpy
+# 2. change None to np.nan

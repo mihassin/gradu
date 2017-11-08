@@ -61,6 +61,22 @@ class DataCollector:
 			times.append(t)
 			json.dump(times, f)
 
+
+	"""This helper function fetches the data
+
+	:param i: index to keep track id of item list ids
+	:param ids: list containing item ids
+	:returns: tail index k and json data listings 
+	"""
+	def _fetch_batch(self, i, ids):
+		if(i+200 > len(ids)):
+			k = len(ids)-1
+		else:
+			k = i+200
+		listings = api.listings(ids[i:k])
+		return (k, listings)
+
+
 	"""Takes a snapsnot of the GuildWars2 market by collection
 	all the buy and sell listings of every item in the market.
 	Due to some limitations of the gw2api only 200 items can be
@@ -68,7 +84,7 @@ class DataCollector:
 	structure.
 	"""
 	def snapshot(self):
-		listings_path = '../data/' + time.strftime('%d-%m-%Y-%H:%M')	
+		listings_path = '../data/' + time.strftime('%d-%m-%Y-%H:%M') + '/'	
 		ids = self._housekeeping(listings_path)
 		i = 0
 		j = 1
@@ -76,20 +92,24 @@ class DataCollector:
 		while(i < len(ids)):
 			print("Batch", j)
 			print("Time so far", time.time()-t, "seconds")
-			if(i+200 > len(ids)):
-				k = len(ids)-1
-				listings = api.listings(ids[i:k])
-			else:
-				k = i+200
-				listings = api.listings(ids[i:k])
-			fn = listings_path+"/"+str(i)+"-"+str(k)+".json"
+			#fetching data
+			k, listings = self._fetch_batch(i, ids)
+			fn = listings_path+str(i)+"-"+str(k)+".json"
 			with open(fn, 'w+') as f:
 				json.dump(listings, f)
 			i += 200
 			j += 1
 		self._timekeeping(time.time() - t)
+		return listings_path
 
 
+	"""A function for clearing the data folder structure.
+	All the separate json files within a date folder are 
+	merged into a single json file snap.json.
+
+	:param path: path to the date folder
+	:returns: a success message
+	"""
 	def merge_snapshot(self, path):
 		files = os.listdir(path)
 		with open(path + files[0], 'r') as f:
@@ -99,14 +119,16 @@ class DataCollector:
 				batch = json.load(f)
 			data = merge(data, batch)
 		with open(path + 'snap.json', 'w+') as f:
-			json.dump(data, f, indent=4)
+			json.dump(data, f)
 		return 'Great Success!'
-		
+
 
 if __name__ == "__main__":
 	dc = DataCollector()
 	try:
-		dc.snapshot()
+		path = dc.snapshot()
+		print(path)
+		dc.merge_snapshot(path)
 	except urllib.error.HTTPError as err:
 		with open('../logs/'+time.strftime('%d-%m-%Y-%H:%M')+'.log', 'w+') as f:
 			f.write(str(err.code))
@@ -115,5 +137,7 @@ if __name__ == "__main__":
 # NOTES
 
 '''
-	1. if Httperror occurs, loop the batch a few times
+	1. if Httperror occurs, loop the batch a few times   |
+	2. separate requesting                               | DONE
+	3. create a try except loop structure for requesting |
 '''
