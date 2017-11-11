@@ -3,7 +3,6 @@ import time
 import json
 import urllib.request
 
-from jsonmerge import merge
 from gw2api import Gw2Api as api
 
 class DataCollector:
@@ -117,7 +116,7 @@ class DataCollector:
 		for file in files[1:]:
 			with open(path + file, 'r') as f:
 				batch = json.load(f)
-			data = merge(data, batch)
+			data.extend(batch)
 		with open(path + 'snap.json', 'w+') as f:
 			json.dump(data, f)
 		return 'Great Success!'
@@ -127,7 +126,7 @@ if __name__ == "__main__":
 	dc = DataCollector()
 	try:
 		path = dc.snapshot()
-		print(path)
+		print('Merging batches')
 		dc.merge_snapshot(path)
 	except urllib.error.HTTPError as err:
 		with open('../logs/'+time.strftime('%d-%m-%Y-%H:%M')+'.log', 'w+') as f:
