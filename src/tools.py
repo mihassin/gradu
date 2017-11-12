@@ -20,7 +20,7 @@ class Tools:
 	"""
 	@staticmethod
 	def absolute_return(x0, x1):
-		return (Tools.fee_constant*x1) -x0
+		return (Tools.fee_constant*x1) - x0
 
 
 	"""Returns the relative profit or rate of profit of
@@ -53,20 +53,20 @@ class Tools:
 
 
 	@staticmethod
-	def _handle_empty_listings(item):
-		value = None
+	def _handle_empty_listings(item, relative):
+		value = np.nan
 		if item['buys'] and item['sells']:
 			low = item['buys'][0]['unit_price']
 			high = item['sells'][0]['unit_price']
-			value = Tools.relative_return(low, high)
+			value = Tools.relative_return(low, high) if relative else Tools.absolute_return(low, high)
 		return value
 
 
 	@staticmethod
-	def _handle_file(data, json_data):
+	def _handle_file(data, json_data, relative):
 		for item in json_data:
 			ind = item['id']
-			value = Tools._handle_empty_listings(item)
+			value = Tools._handle_empty_listings(item, relative)
 			if not ind in data:	
 				data[ind] = [value]
 			else:
@@ -75,7 +75,7 @@ class Tools:
 
 
 	@staticmethod
-	def list_of_returns():
+	def list_of_returns(relative = True):
 		data = {}
 		datapath = '../data/'
 		dirs = Tools.immidiate_subdirs(datapath)
@@ -83,37 +83,21 @@ class Tools:
 			f_path = datapath + d + '/snap.json'
 			with open(f_path, 'r') as f:
 				json_data = json.load(f)
-				data = Tools._handle_file(data, json_data)
+				data = Tools._handle_file(data, json_data, relative)
 		return data
 
 
-	"""Returns the mean of the relative returns for a item with data_id i
-	
-	:param i: the data_id of the item
-	:returns: the mean of the relative returns of the item asset
+	"""
+	:returns: mean expected return
 	"""
 	@staticmethod
-	def mean_relative_return(i):
-		with open('../data/item_ids.json', 'r') as f:
-			ids = json.load(f)
-		try:
-			index = ids.index(i)
-		except ValueError:
-			return None
-		datapath = '../data/'
-		dirs = Tools.immidiate_subdirs(datapath)
-		files = os.listdir(datapath + dirs[0])
-		for filename in files:
-			bounds = filename[:-5].split('-')
-			low = int(bounds[0])
-			high = int(bounds[1])
-			if(Tools.in_between(low, high, index)): break
-		for d in dirs:
-			path = datapath + d + filename
-			with open(path, 'r') as f:
-				curr = json.load(f)
-		#Continue	
-		return dirs
+	def mean_returns(relative = True):
+		returns = Tools.list_of_returns(relative)
+		means = {}
+		for key, lst in returns.items():
+			#print(lst)
+			means[key] = np.nanmean(lst)
+		return means
 
 
 	@staticmethod
@@ -128,6 +112,11 @@ class Tools:
 		silver = '0' if st[-4:-2] == '' else st[-4:-2]
 		gold = '0' if st[:-4] == '' else st[:-4]
 		return minus + gold + " g " + silver + " s " + copper + " c"
+
+# mean absolute return of assets 
+# aret = [np.nanmean(r) for r in tools.list_of_returns(relative = False)]
+# mean relative return of assets
+# rret = [np.mean(r) for r in tools.list_of_returns(relative = True)]
 
 # 1. Rewrite with numpy
 # 2. change None to np.nan
