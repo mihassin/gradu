@@ -117,9 +117,11 @@ class DataCollector:
 			with open(path + file, 'r') as f:
 				batch = json.load(f)
 			data.extend(batch)
+			#new line
+			os.remove(path+file)
 		with open(path + 'snap.json', 'w+') as f:
 			json.dump(data, f)
-		return 'Great Success!'
+		return 'Merging complete!'
 
 
 if __name__ == "__main__":
