@@ -111,13 +111,14 @@ class DataCollector:
 	"""
 	def merge_snapshot(self, path):
 		files = os.listdir(path)
-		with open(path + files[0], 'r') as f:
-			data = json.load(f)
-		for file in files[1:]:
+		data = []
+		for file in files:
 			with open(path + file, 'r') as f:
-				batch = json.load(f)
-			data.extend(batch)
-			#new line
+				if len(data) == 0:
+					data = json.load(f)
+				else:
+					batch = json.load(f)
+					data.extend(batch)
 			os.remove(path+file)
 		with open(path + 'snap.json', 'w+') as f:
 			json.dump(data, f)
