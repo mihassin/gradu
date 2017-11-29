@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf8 -*-
+
 import os
 import time
 import json
@@ -13,8 +16,19 @@ class DataCollector:
 
 
 	def __init__(self):
-		self.item_ids_path = '../data/item_ids.json'
-		self.times_path = '../data/request_times.json'
+		self.root = self._get_root()
+		self.data_path = self.root + '/data'
+		self.item_ids_path = self.data_path + '/item_ids.json'
+		self.times_path = self.data_path + '/request_times.json'
+
+
+	"""Returns absolute path to project root as a string
+	"""
+	def _get_root(self):
+		path_str = os.path.abspath(__file__)
+		path_list = str.split(path_str, '/')
+		path = '/'.join(path_list[:-2])
+		return path
 
 
 	"""Checks if a given path(file) exists.
@@ -72,7 +86,12 @@ class DataCollector:
 			k = len(ids)-1
 		else:
 			k = i+200
-		listings = api.listings(ids[i:k])
+		try:
+			listings = api.listings(ids[i:k])
+		except Exception as e:
+			with open(self.root + '/logs/' + time.strftime('%d-%m-%Y-%H:%M') + '.log', 'w+') as f:
+				f.write(str(e))
+				print('Failed to fetch data due to an exception:', e)
 		return (k, listings)
 
 
@@ -83,7 +102,7 @@ class DataCollector:
 	structure.
 	"""
 	def snapshot(self):
-		listings_path = '../data/' + time.strftime('%d-%m-%Y-%H:%M') + '/'	
+		listings_path = self.data_path + '/' + time.strftime('%d-%m-%Y-%H:%M') + '/'	
 		ids = self._housekeeping(listings_path)
 		i = 0
 		j = 1
@@ -114,7 +133,7 @@ class DataCollector:
 		data = []
 		for file in files:
 			with open(path + file, 'r') as f:
-				if len(data) == 0:
+				if not data:
 					data = json.load(f)
 				else:
 					batch = json.load(f)
@@ -127,19 +146,15 @@ class DataCollector:
 
 if __name__ == "__main__":
 	dc = DataCollector()
-	try:
-		path = dc.snapshot()
-		print('Merging batches')
-		dc.merge_snapshot(path)
-	except urllib.error.HTTPError as err:
-		with open('../logs/'+time.strftime('%d-%m-%Y-%H:%M')+'.log', 'w+') as f:
-			f.write(str(err.code))
-			print('Exiting due to Http error')
+	path = dc.snapshot()
+	print('Merging batches')
+	dc.merge_snapshot(path)
 
-# NOTES
+# TODO
 
 '''
-	1. if Httperror occurs, loop the batch a few times   |
-	2. separate requesting                               | DONE
-	3. create a try except loop structure for requesting |
+	1. if an exception occurs, loop the batch a few times |
+	2. separate requesting                                | DONE
+	3. separate try except structure from __main__ 		  | DONE
+	4. fs path handeling								  | DONE
 '''
