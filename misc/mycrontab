@@ -1,0 +1,2 @@
+# Run this script every hour of every day ex. 18:05
+5 * * * * /home/<user>/gradu/src/data_collector.py
