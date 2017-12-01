@@ -23,7 +23,7 @@ class Tools:
 		return (Tools.fee_constant*x1) - x0
 
 
-	"""Returns the relative profit or rate of profit of
+	"""Returns the rate of return of
 	the buying price of x0 and selling price of x1.
 
 	:param x0: buying price
@@ -33,6 +33,19 @@ class Tools:
 	@staticmethod
 	def relative_return(x0, x1):
 		return Tools.absolute_return(x0, x1) / x0
+
+
+	"""The fraction of selling price and buying price is
+	called total return
+
+	:param x0: buying price
+	:param x1: selling price
+	:returns: total return
+	"""
+	# TODO include fees parameter
+	@staticmethod
+	def total_return(x0, x1):
+		return x1 / x0
 
 
 	"""Lists the immidiate subdirectories below the given path.
