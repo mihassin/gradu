@@ -7,6 +7,7 @@ import json
 import urllib.request
 
 from gw2api import Gw2Api as api
+from utils import get_project_root
 
 class DataCollector:
 	"""A Class responsible for the collection of data.
@@ -16,19 +17,10 @@ class DataCollector:
 
 
 	def __init__(self):
-		self.root = self._get_root()
+		self.root = get_project_root()
 		self.data_path = self.root + '/data'
 		self.item_ids_path = self.data_path + '/item_ids.json'
 		self.times_path = self.data_path + '/request_times.json'
-
-
-	"""Returns absolute path to project root as a string
-	"""
-	def _get_root(self):
-		path_str = os.path.abspath(__file__)
-		path_list = str.split(path_str, '/')
-		path = '/'.join(path_list[:-2])
-		return path
 
 
 	"""Checks if a given path(file) exists.
@@ -108,8 +100,7 @@ class DataCollector:
 		j = 1
 		t = time.time()
 		while(i < len(ids)):
-			print("Batch", j)
-			print("Time so far", time.time()-t, "seconds")
+			print("Batch", j, ": Time so far", time.time()-t, "seconds")
 			#fetching data
 			k, listings = self._fetch_batch(i, ids)
 			fn = listings_path+str(i)+"-"+str(k)+".json"
