@@ -2,6 +2,8 @@ import os
 import json
 import numpy as np
 
+from utils import immidiate_subdirs
+
 
 class Tools:
 	"""1) Posting a sell order for price x will cost 0.05*x
@@ -48,16 +50,6 @@ class Tools:
 		return x1 / x0
 
 
-	"""Lists the immidiate subdirectories below the given path.
-
-	:param root: path to be investigated
-	:returns: a list of subdirectory names 
-	"""
-	@staticmethod
-	def immidiate_subdirs(root):
-		return [f for f in os.listdir(root) if os.path.isdir(os.path.join(root, f))]
-
-
 	"""Check if a value is contained in a range
 	"""
 	@staticmethod
@@ -91,7 +83,7 @@ class Tools:
 	def list_of_returns(relative = True):
 		data = {}
 		datapath = '../data/'
-		dirs = Tools.immidiate_subdirs(datapath)
+		dirs = immidiate_subdirs(datapath)
 		for d in dirs:
 			f_path = datapath + d + '/snap.json'
 			with open(f_path, 'r') as f:

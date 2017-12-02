@@ -153,8 +153,5 @@ if __name__ == "__main__":
 # TODO
 
 '''
-	1. if an exception occurs, loop the batch a few times |
-	2. separate requesting                                | DONE
-	3. separate try except structure from __main__ 		  | DONE
-	4. fs path handeling								  | DONE
+	1. if an exception occurs, loop the batch a few times | error handeling
 '''
