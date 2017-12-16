@@ -66,5 +66,6 @@ class Cleanser:
 		p = (i/n)*100
 		print('Status:', i, "/", n, p, '% completed.')
 
+
 if __name__ == "__main__":
 	Cleanser.clean_data()
