@@ -48,7 +48,7 @@ def solve_pg(A, b, momentum=0.9, maxiter=1000):
     x_ = Variable(N)
     v_ = Parameter(N)
     objective_ =  Minimize(0.5 * square(norm(x_ - v_, 2)))
-    constraints_ = [sum(x_) == 1]
+    constraints_ = [sum(x_) == 1, x_ >= 0]
     problem_ = Problem(objective_, constraints_)
 
     def gradient(x):
@@ -105,6 +105,6 @@ x = solve_pg(A, y)
 print('used (secs): ', pc() - t0)
 print(obj(x))
 print('sum w: ', np.sum(x))
-port = np.array([np.mean(i) for i in A.transpose()])
-m = np.sum(p*w for p, w in zip(port, x))
-print('port exp:', m)
+print(x)
+m = np.sum(r*w for r, w in zip(np.mean(A, axis=0), x))
+print('Exprected return of Portfolio:', m)
