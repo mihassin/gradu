@@ -4,12 +4,14 @@ from sklearn import linear_model
 filename = 'Average_Value_Weighted_Returns.csv'
 data = np.genfromtxt(filename, delimiter=',')
 
-# start from 1976/07
-data = data[601:]
+# data 1976/07 - 2006/06 
+data = data[601:961]
 tdata = np.transpose(data)
 
 # exclude months
-tdata = tdata[1:]
+# tdata = tdata[1:]
+A = np.transpose(tdata[1:])
+
 
 # missing values
 for i in range(len(tdata)):
@@ -24,6 +26,7 @@ for i in tdata[1:]:
 		tmp = np.append(tmp, [i], axis=0)
 
 train = np.transpose(tmp)
+# shape (360, 48)
 T, N = train.shape
 
 # target construction
