@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
-import os
 import datetime
-import time
 import json
+import os
+import time
 import urllib.request
 
 from gw2api import Gw2Api as api
