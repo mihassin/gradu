@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 
 import os
+import datetime
 import time
 import json
 import urllib.request
@@ -81,7 +82,7 @@ class DataCollector:
 		try:
 			listings = api.listings(ids[i:k])
 		except Exception as e:
-			with open(self.root + '/logs/' + time.strftime('%d-%m-%Y-%H:%M') + '.log', 'w+') as f:
+			with open(self.root + '/logs/' + datetime.datetime.now().replace(microsecond=0).isoformat() + '.log', 'w+') as f:
 				f.write(str(e))
 				print('Failed to fetch data due to an exception:', e)
 		return (k, listings)
@@ -94,7 +95,7 @@ class DataCollector:
 	structure.
 	"""
 	def snapshot(self):
-		listings_path = self.data_path + '/' + time.strftime('%d-%m-%Y-%H:%M') + '/'	
+		listings_path = self.data_path + '/' + datetime.datetime.now().replace(microsecond=0).isoformat() + '/'	
 		ids = self._housekeeping(listings_path)
 		i = 0
 		j = 1
