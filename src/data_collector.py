@@ -121,6 +121,7 @@ class DataCollector:
 	:returns: a success message
 	"""
 	def merge_snapshot(self, path):
+		print('Merging batches')
 		files = os.listdir(path)
 		data = []
 		for file in files:
@@ -135,12 +136,15 @@ class DataCollector:
 			json.dump(data, f)
 		return 'Merging complete!'
 
+def main():
+	dc = DataCollector()
+	# Make all the 123 requests to collect data 
+	path = dc.snapshot()
+	# Merge the batch files into a single json file
+	dc.merge_snapshot(path)
 
 if __name__ == "__main__":
-	dc = DataCollector()
-	path = dc.snapshot()
-	print('Merging batches')
-	dc.merge_snapshot(path)
+	main()
 
 # TODO
 
