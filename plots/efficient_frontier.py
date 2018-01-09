@@ -67,5 +67,11 @@ for i in combinations(list(range(n)), 2):
 	kkr, kks = naive_portfolio(rr)
 	plt.plot(kks, kkr, 'go', markersize=5, markeredgecolor='black')
 
+for i in combinations(list(range(n)), 3):
+	rr = np.array([returns[i[0]], returns[i[1]], returns[i[2]]])
+	kw, kr, ks = optimal_portfolios(rr)
+	plt.plot(ks, kr, 'y-')	
+	kkr, kks = naive_portfolio(rr)
+	plt.plot(kks, kkr, 'yo', markersize=5, markeredgecolor='black')
 
 plt.show()
