@@ -52,26 +52,35 @@ m, s = naive_portfolio(returns)
 means, stds = np.column_stack([random_portfolios(returns) for _ in range(500)])
 weights, rets, risks = optimal_portfolios(returns)
 
-plt.plot(stds, means, 'bo', markersize=5, markeredgecolor='black')
+plt.plot(stds, means, 'bo', markersize=5, markeredgecolor='black', label='Random portfolios')
 plt.xlabel('Risk (standard deviation)')
 plt.ylabel('Return')
 plt.title('The Efficient Frontier')
-plt.plot(risks, rets, 'r-')
-plt.plot(s, m, 'ro', markersize=5, markeredgecolor='black')
+plt.plot(s, m, 'ro', markersize=5, markeredgecolor='black', label='Naive portfolio')
 
 n, d = returns.shape
+k_stds = []
 for i in combinations(list(range(n)), 2):
 	rr = np.array([returns[i[0]], returns[i[1]]])
 	kw, kr, ks = optimal_portfolios(rr)
 	plt.plot(ks, kr, 'g-')	
 	kkr, kks = naive_portfolio(rr)
-	plt.plot(kks, kkr, 'go', markersize=5, markeredgecolor='black')
+	plt.plot(kks, kkr, 'go', marker="D", markersize=5, markeredgecolor='black', label='Naive 2-portfolios')
+	k_stds.append(kks[0,0])
 
 for i in combinations(list(range(n)), 3):
 	rr = np.array([returns[i[0]], returns[i[1]], returns[i[2]]])
 	kw, kr, ks = optimal_portfolios(rr)
 	plt.plot(ks, kr, 'y-')	
 	kkr, kks = naive_portfolio(rr)
-	plt.plot(kks, kkr, 'yo', markersize=5, markeredgecolor='black')
+	plt.plot(kks, kkr, 'yo', marker="s", markersize=5, markeredgecolor='black', label='Naive 3-portfolios')
 
+plt.plot(risks, rets, 'r-', label='Efficient frontier')
+
+mu0 = np.min([m[0,0], np.min(rets)])
+std0 = np.min([s[0,0], np.min(stds), np.min(risks)])
+plt.axhline(y=mu0, color='#1f77b4', label=r'$\mu_0$')
+plt.axvline(x=np.max(k_stds), color='#ff7f0e', label=r'$\sigma_0$')
+
+plt.legend()
 plt.show()
