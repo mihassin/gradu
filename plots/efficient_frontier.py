@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import cvxopt as opt
 from cvxopt import solvers, blas
+from itertools import combinations
 
 returns = np.random.randn(4, 1000)
 
@@ -19,7 +20,14 @@ def random_portfolios(returns):
 		return random_portfolios(returns)
 	return mu, sigma
 
-means, stds = np.column_stack([random_portfolios(returns) for _ in range(500)])
+def naive_portfolio(returns):
+	n, d = returns.shape
+	p = np.asmatrix(np.mean(returns, axis=1))
+	w = np.asmatrix(np.repeat(1/n, n))
+	C = np.asmatrix(np.cov(returns))
+	mu = w * p.T
+	sigma = np.sqrt(w*C*w.T)
+	return mu, sigma
 
 def optimal_portfolios(returns):
 	n = len(returns)
@@ -40,11 +48,24 @@ def optimal_portfolios(returns):
 	wt = solvers.qp(opt.matrix(x1*S), -pbar, G, h, A, b)['x']
 	return np.asarray(wt), returns, risks 
 
+m, s = naive_portfolio(returns)
+means, stds = np.column_stack([random_portfolios(returns) for _ in range(500)])
 weights, rets, risks = optimal_portfolios(returns)
 
 plt.plot(stds, means, 'bo', markersize=5, markeredgecolor='black')
 plt.xlabel('Risk (standard deviation)')
 plt.ylabel('Return')
 plt.title('The Efficient Frontier')
-plt.plot(risks, rets, 'g-')
+plt.plot(risks, rets, 'r-')
+plt.plot(s, m, 'ro', markersize=5, markeredgecolor='black')
+
+n, d = returns.shape
+for i in combinations(list(range(n)), 2):
+	rr = np.array([returns[i[0]], returns[i[1]]])
+	kw, kr, ks = optimal_portfolios(rr)
+	plt.plot(ks, kr, 'g-')	
+	kkr, kks = naive_portfolio(rr)
+	plt.plot(kks, kkr, 'go', markersize=5, markeredgecolor='black')
+
+
 plt.show()
