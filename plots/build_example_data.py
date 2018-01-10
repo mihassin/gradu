@@ -7,10 +7,11 @@ def build_example_return_data():
 		tmp = np.genfromtxt(file, delimiter=',')
 		tmp = tmp[2:]
 		tmp = tmp.T[1]
+		r = np.array([(tmp[i+1] - tmp[i]) / tmp[i] for i in range(len(tmp) - 1)])
 		if not data.size:
-			data = np.array([tmp])
+			data = np.array([r])
 		else:
-			data = np.append(data, [tmp], axis=0)
+			data = np.append(data, [r], axis=0)
 	return data
 
 def main():

@@ -59,19 +59,11 @@ def plot_efficient_frontier(returns, ax):
 	# Max assets Markowitz optimal
 	weights, rets, risks = optimal_portfolios(returns)
 	ax.plot(risks, rets, 'r-', label='Efficient frontier')
-	return rets
 
-def plot_boundaries(returns, ax, m, rets, k_stds):
+def plot_boundaries(returns, ax, mu0, s0):
 	# Boundaries
-	mu0 = np.min([m[0,0], np.min(rets)])
 	ax.axhline(y=mu0, color='#1f77b4', label=r'$\mu_0$')
-	ax.axvline(x=np.max(k_stds), color='#ff7f0e', label=r'$\sigma_0$')
-
-def plot_max_naive_boundaries(returns, ax, m, s):
-	# Boundaries
-	ax.axhline(y=m[0,0], color='#1f77b4', label=r'$\mu_0$')
-	ax.axvline(x=s[0,0], color='#ff7f0e', label=r'$\sigma_0$')
-	plot_naive_max_portfolio(returns, ax)
+	ax.axvline(x=s0, color='#ff7f0e', label=r'$\sigma_0$')
 
 def plot_legend(ax):
 	# legend
@@ -79,7 +71,6 @@ def plot_legend(ax):
 
 def plot_2_port(returns, ax):
 	n, d = returns.shape
-	k_stds = []
 	# 2-portfolios naïve and opt
 	for i in combinations(list(range(n)), 2):
 		rr = np.array([returns[i[0]], returns[i[1]]])
@@ -87,8 +78,6 @@ def plot_2_port(returns, ax):
 		#ax.plot(ks, kr, 'g-')	
 		kkr, kks = naive_portfolio(rr)
 		ax.plot(kks, kkr, 'go', marker="D", markersize=5, markeredgecolor='black', label='Naive 2-portfolios')
-		k_stds.append(kks[0,0])
-	return k_stds
 
 def plot_3_port(returns, ax):
 	n, d = returns.shape
@@ -101,24 +90,22 @@ def plot_3_port(returns, ax):
 		ax.plot(kks, kkr, 'yo', marker="s", markersize=5, markeredgecolor='black', label='Naive 3-portfolios')
 
 def plot_k_portfolios(returns, ax):
-	k_stds = plot_2_port(returns, ax)
+	plot_2_port(returns, ax)
 	plot_3_port(returns, ax)
-	return k_stds
 
-def skeleton(returns):
+def skeleton(returns, mu0, s0):
 	fig = plt.figure()
 	ax = plt.subplot(111)
-	ax.set_title('The Efficient Frontier')
+	ax.set_title('k-portfolios')
 	ax.set_xlabel('Risk (standard deviation)')
 	ax.set_ylabel('Return')
 
 	#plot_random_portfolios(returns, ax)
 	m, s = plot_naive_max_portfolio(returns, ax)
 	
-	k_stds = plot_k_portfolios(returns, ax)
-	rets = plot_efficient_frontier(returns, ax)
-	#plot_boundaries(returns, ax, m, rets, k_stds)
-	plot_max_naive_boundaries(returns, ax, m, s)
+	plot_k_portfolios(returns, ax)
+	plot_efficient_frontier(returns, ax)
+	plot_boundaries(returns, ax, mu0, s0)
 
 	lgd = plot_legend(ax)
 	# presentation
@@ -140,7 +127,8 @@ def main():
 	#returns = iid_n01_data()
 	#returns = other_data()
 	returns = np.load('example_returns.ndarray')
-	skeleton(returns)
+	(mu0, s0) = (0.02, 0.058)
+	skeleton(returns, mu0, s0)
 
 if __name__ == "__main__":
 	main()
