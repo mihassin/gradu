@@ -3,9 +3,7 @@ from matplotlib import pyplot as plt
 import cvxopt as opt
 from cvxopt import solvers, blas
 from itertools import combinations
-
-returns = np.random.randn(4, 1000)
-
+	
 def random_weights(n):
 	w = np.random.rand(n)
 	return w / sum(w)
@@ -16,8 +14,6 @@ def random_portfolios(returns):
 	C = np.asmatrix(np.cov(returns))
 	mu = w * p.T
 	sigma = np.sqrt(w*C*w.T)
-	if sigma > 2:
-		return random_portfolios(returns)
 	return mu, sigma
 
 def naive_portfolio(returns):
@@ -32,7 +28,7 @@ def naive_portfolio(returns):
 def optimal_portfolios(returns):
 	n = len(returns)
 	returns = np.asmatrix(returns)
-	N = 1000
+	N = returns.shape[1]
 	mus = [10**(5 * t/N - 1) for t in range(N)]
 	S = opt.matrix(np.cov(returns))
 	pbar = opt.matrix(np.mean(returns, axis=1))
@@ -48,39 +44,103 @@ def optimal_portfolios(returns):
 	wt = solvers.qp(opt.matrix(x1*S), -pbar, G, h, A, b)['x']
 	return np.asarray(wt), returns, risks 
 
-m, s = naive_portfolio(returns)
-means, stds = np.column_stack([random_portfolios(returns) for _ in range(500)])
-weights, rets, risks = optimal_portfolios(returns)
+def plot_random_portfolios(returns, ax):
+	# Random portfolios
+	means, stds = np.column_stack([random_portfolios(returns) for _ in range(500)])
+	ax.plot(stds, means, 'bo', markersize=5, markeredgecolor='black', label='Random portfolios')	
 
-plt.plot(stds, means, 'bo', markersize=5, markeredgecolor='black', label='Random portfolios')
-plt.xlabel('Risk (standard deviation)')
-plt.ylabel('Return')
-plt.title('The Efficient Frontier')
-plt.plot(s, m, 'ro', markersize=5, markeredgecolor='black', label='Naive portfolio')
+def plot_naive_max_portfolio(returns, ax):
+	# Naïve max assets
+	m, s = naive_portfolio(returns)
+	ax.plot(s, m, 'ro', markersize=5, markeredgecolor='black', label='Naive portfolio')
+	return m, s
 
-n, d = returns.shape
-k_stds = []
-for i in combinations(list(range(n)), 2):
-	rr = np.array([returns[i[0]], returns[i[1]]])
-	kw, kr, ks = optimal_portfolios(rr)
-	plt.plot(ks, kr, 'g-')	
-	kkr, kks = naive_portfolio(rr)
-	plt.plot(kks, kkr, 'go', marker="D", markersize=5, markeredgecolor='black', label='Naive 2-portfolios')
-	k_stds.append(kks[0,0])
+def plot_efficient_frontier(returns, ax):
+	# Max assets Markowitz optimal
+	weights, rets, risks = optimal_portfolios(returns)
+	ax.plot(risks, rets, 'r-', label='Efficient frontier')
+	return rets
 
-for i in combinations(list(range(n)), 3):
-	rr = np.array([returns[i[0]], returns[i[1]], returns[i[2]]])
-	kw, kr, ks = optimal_portfolios(rr)
-	plt.plot(ks, kr, 'y-')	
-	kkr, kks = naive_portfolio(rr)
-	plt.plot(kks, kkr, 'yo', marker="s", markersize=5, markeredgecolor='black', label='Naive 3-portfolios')
+def plot_boundaries(returns, ax, m, rets, k_stds):
+	# Boundaries
+	mu0 = np.min([m[0,0], np.min(rets)])
+	ax.axhline(y=mu0, color='#1f77b4', label=r'$\mu_0$')
+	ax.axvline(x=np.max(k_stds), color='#ff7f0e', label=r'$\sigma_0$')
 
-plt.plot(risks, rets, 'r-', label='Efficient frontier')
+def plot_max_naive_boundaries(returns, ax, m, s):
+	# Boundaries
+	ax.axhline(y=m[0,0], color='#1f77b4', label=r'$\mu_0$')
+	ax.axvline(x=s[0,0], color='#ff7f0e', label=r'$\sigma_0$')
+	plot_naive_max_portfolio(returns, ax)
 
-mu0 = np.min([m[0,0], np.min(rets)])
-std0 = np.min([s[0,0], np.min(stds), np.min(risks)])
-plt.axhline(y=mu0, color='#1f77b4', label=r'$\mu_0$')
-plt.axvline(x=np.max(k_stds), color='#ff7f0e', label=r'$\sigma_0$')
+def plot_legend(ax):
+	# legend
+	return ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 
-plt.legend()
-plt.show()
+def plot_2_port(returns, ax):
+	n, d = returns.shape
+	k_stds = []
+	# 2-portfolios naïve and opt
+	for i in combinations(list(range(n)), 2):
+		rr = np.array([returns[i[0]], returns[i[1]]])
+		#kw, kr, ks = optimal_portfolios(rr)
+		#ax.plot(ks, kr, 'g-')	
+		kkr, kks = naive_portfolio(rr)
+		ax.plot(kks, kkr, 'go', marker="D", markersize=5, markeredgecolor='black', label='Naive 2-portfolios')
+		k_stds.append(kks[0,0])
+	return k_stds
+
+def plot_3_port(returns, ax):
+	n, d = returns.shape
+	# 3-portfolios naïve and opt
+	for i in combinations(list(range(n)), 3):
+		rr = np.array([returns[i[0]], returns[i[1]], returns[i[2]]])
+		#kw, kr, ks = optimal_portfolios(rr)
+		#ax.plot(ks, kr, 'y-')	
+		kkr, kks = naive_portfolio(rr)
+		ax.plot(kks, kkr, 'yo', marker="s", markersize=5, markeredgecolor='black', label='Naive 3-portfolios')
+
+def plot_k_portfolios(returns, ax):
+	k_stds = plot_2_port(returns, ax)
+	plot_3_port(returns, ax)
+	return k_stds
+
+def skeleton(returns):
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('The Efficient Frontier')
+	ax.set_xlabel('Risk (standard deviation)')
+	ax.set_ylabel('Return')
+
+	#plot_random_portfolios(returns, ax)
+	m, s = plot_naive_max_portfolio(returns, ax)
+	
+	k_stds = plot_k_portfolios(returns, ax)
+	rets = plot_efficient_frontier(returns, ax)
+	#plot_boundaries(returns, ax, m, rets, k_stds)
+	plot_max_naive_boundaries(returns, ax, m, s)
+
+	lgd = plot_legend(ax)
+	# presentation
+	fig.savefig('image_output.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+	plt.show()
+
+def iid_n01_data():
+	return np.random.randn(4, 1000)
+
+def other_data():
+	return np.array([
+		1 * np.random.randn(1000) - 2,
+		1 * np.random.randn(1000) + 5,
+		1.5 * np.random.randn(1000) + 3,
+		10 * np.random.randn(1000) + 10
+		])
+
+def main():
+	#returns = iid_n01_data()
+	#returns = other_data()
+	returns = np.load('example_returns.ndarray')
+	skeleton(returns)
+
+if __name__ == "__main__":
+	main()
