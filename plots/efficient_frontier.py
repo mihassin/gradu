@@ -25,8 +25,8 @@ def naive_portfolio(returns):
 	sigma = np.sqrt(w*C*w.T)
 	return mu, sigma
 
-def optimal_portfolios(returns):
-	n = len(returns)
+def solve(returns):
+	n = returns.shape[0]
 	returns = np.asmatrix(returns)
 	N = returns.shape[1]
 	mus = [10**(5 * t/N - 1) for t in range(N)]
@@ -37,12 +37,19 @@ def optimal_portfolios(returns):
 	A = opt.matrix(1.0, (1, n))
 	b = opt.matrix(1.0)
 	portfolios = [solvers.qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus]
+	return portfolios
+
+def fit(returns, portfolios):
+	S = opt.matrix(np.cov(returns))
+	pbar = opt.matrix(np.mean(returns, axis=1))
 	returns = [blas.dot(pbar, x) for x in portfolios]
 	risks = [np.sqrt(blas.dot(x, S*x)) for x in portfolios]
-	m1 = np.polyfit(returns, risks, 2)
-	x1 = np.sqrt(m1[2] / m1[0])
-	wt = solvers.qp(opt.matrix(x1*S), -pbar, G, h, A, b)['x']
-	return np.asarray(wt), returns, risks 
+	return returns, risks
+
+def optimal_portfolios(returns):
+	portfolios = solve(returns)
+	returns, risks = fit(returns, portfolios)
+	return returns, risks
 
 def plot_random_portfolios(returns, ax):
 	# Random portfolios
@@ -100,7 +107,7 @@ def skeleton(returns, mu0, s0):
 	ax.set_xlabel('Risk (standard deviation)')
 	ax.set_ylabel('Return')
 
-	#plot_random_portfolios(returns, ax)
+	plot_random_portfolios(returns, ax)
 	m, s = plot_naive_max_portfolio(returns, ax)
 	
 	plot_k_portfolios(returns, ax)
@@ -123,12 +130,33 @@ def other_data():
 		10 * np.random.randn(1000) + 10
 		])
 
+from build_example_data import build_example_ml_return_data
+def ml_plot():
+	data, target = build_example_ml_return_data()
+	portfolios = solve(data)
+	returns, risks = fit(data, portfolios)
+	returns_target, risks_target = fit(target, portfolios)
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('Trained frontier vs target frontier')
+	ax.set_xlabel('Risk (standard deviation)')
+	ax.set_ylabel('Return')
+	ax.plot(risks, returns, label='Trained efficient frontier')
+	ax.plot(risks_target, returns_target, label='Target frontier')
+	#lgd = plot_legend(ax)
+	# presentation
+	#fig.savefig('ml_image_output.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+	ax.legend()
+	fig.savefig('ml_image_output.png', format='png')
+	plt.show()
+
 def main():
 	#returns = iid_n01_data()
 	#returns = other_data()
-	returns = np.load('example_returns.ndarray')
-	(mu0, s0) = (0.02, 0.058)
-	skeleton(returns, mu0, s0)
+	#returns = np.load('example_returns.ndarray')
+	#(mu0, s0) = (0.02, 0.058)
+	#skeleton(returns, mu0, s0)
+	ml_plot()
 
 if __name__ == "__main__":
 	main()
