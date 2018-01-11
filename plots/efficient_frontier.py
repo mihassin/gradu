@@ -132,17 +132,17 @@ def other_data():
 
 from build_example_data import build_example_ml_return_data
 def ml_plot():
-	data, target = build_example_ml_return_data()
+	data, test = build_example_ml_return_data()
 	portfolios = solve(data)
 	returns, risks = fit(data, portfolios)
-	returns_target, risks_target = fit(target, portfolios)
+	returns_test, risks_test = fit(test, portfolios)
 	fig = plt.figure()
 	ax = plt.subplot(111)
-	ax.set_title('Trained frontier vs target frontier')
+	ax.set_title('Trained frontier vs actual portfolio performance curve')
 	ax.set_xlabel('Risk (standard deviation)')
 	ax.set_ylabel('Return')
 	ax.plot(risks, returns, label='Trained efficient frontier')
-	ax.plot(risks_target, returns_target, label='Target frontier')
+	ax.plot(risks_test, returns_test, label='Actual portfolio performance curve')
 	#lgd = plot_legend(ax)
 	# presentation
 	#fig.savefig('ml_image_output.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')

@@ -26,8 +26,8 @@ def build_example_ml_return_data():
 			data = np.array([r])
 		else:
 			data = np.append(data, [r], axis=0)
-	target = data[:,-12:]
-	return data[:,:-12], target
+	test = data[:,-12:]
+	return data[:,:-12], test
 
 def main():
 	data = build_example_return_data()
