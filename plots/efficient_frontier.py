@@ -36,7 +36,7 @@ def solve(returns):
 	h = opt.matrix(0.0, (n, 1))
 	A = opt.matrix(1.0, (1, n))
 	b = opt.matrix(1.0)
-	portfolios = [solvers.qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus]
+	portfolios = [solvers.qp(S, -mu*pbar, G, h, A, b)['x'] for mu in mus]
 	return portfolios
 
 def fit(returns, portfolios):
