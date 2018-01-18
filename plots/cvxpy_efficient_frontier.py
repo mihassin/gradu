@@ -90,6 +90,15 @@ def fit(data, portfolios):
 		risks[i] = np.sqrt(np.dot(w, np.dot(Sigma, w)))
 	return risks, returns
 
+def plot_efficient(data, ax, text, color=None):
+	portfolios = markowitz_optimizer(data)
+	risks, returns = fit(data, portfolios)
+	if color:
+		ax.plot(risks, returns, color, label=text)
+	else:
+		ax.plot(risks, returns, color, label=text)
+	return portfolios
+
 def plot_ml(data, test):
 	###########################################################################################################################
 	# figure init
@@ -121,39 +130,97 @@ def plot_ml(data, test):
 	#
 	###########################################################################################################################	
 	# efficient frontiers
-	portfolios = markowitz_optimizer(data)
-	portfolios_test = markowitz_optimizer(test)
-	
-	risks, returns = fit(data, portfolios)
+	portfolios = plot_efficient(data, ax, 'Trained efficient frontier')
+	test_portfolios = plot_efficient(test, ax, 'Test efficitent frontier')
 	risks_test, returns_test = fit(test, portfolios)
-	risks_test_, returns_test_ = fit(test, portfolios_test)
-	
-	ax.plot(risks, returns, '-', markersize=3, markeredgecolor='black', label='Trained efficient frontier')
-	ax.plot(risks_test_, returns_test_, '-', markersize=3, markeredgecolor='black', label='Test efficitent frontier')
 	ax.plot(risks_test, returns_test, '-', markersize=3, markeredgecolor='black', label='Actual portfolio performance curve')
 	#
 	########################################################################################################################
 	# Display and store image
+	save_image(plt, fig, ax)
+	#
+	###########################################################################################################################
+
+def split_data(data, B):
+	return [data[b] for b in B]
+
+def portfolio_risk_return(data, B):
+	n = len(B)
+	w = np.repeat(1/n, n)
+	d = split_data(data, B)
+	rbar = np.mean(d, axis=1)
+	sigma = np.sqrt(np.dot(w, np.dot(np.cov(d), w)))
+	mu = np.dot(rbar, w)
+	return sigma, mu
+
+def depth_first_indexes(data, k, minret, maxrisk):
+	A = []
+	N, D = data.shape
+	S = [[i] for i in range(N)]
+	while S:
+		B = S.pop(0)
+		sigma, mu = portfolio_risk_return(data, B)
+		print(B, sigma, mu)
+		if mu >= minret and sigma <= maxrisk:
+			A.append(B)
+		if(len(B) < k):
+			i = B[-1]
+			for j in range(N-1, i, -1):
+				C = B.copy()
+				C.append(j)
+				S.insert(0, C)
+	return A
+
+def plot_boundaries(ax, mu0, s0):
+	# Boundaries
+	ax.axhline(y=mu0, color='#1f77b4', label=r'$\mu_0$')
+	ax.axvline(x=s0, color='#ff7f0e', label=r'$\sigma_0$')
+
+def plot_k_portfolios(data, k, minret, maxrisk):
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('K portfolios')
+	ax.set_xlabel('Risk (standard deviation)')
+	ax.set_ylabel('Return')
+
+
+	portfolios = plot_efficient(data, ax, 'Trained efficient frontier', 'k')
+	plot_boundaries(ax, minret, maxrisk)
+
+	indexes = depth_first_indexes(data, k, minret, maxrisk)
+	colors = ['bo', 'ro', 'go']
+	for i in indexes:
+		subdata = split_data(data, i)
+		n = len(subdata)
+		w = np.repeat(1/n, n)
+		risk, ret = fit(subdata, [w])
+		label = 'Naive ' + str(n) + '-portfolios'
+		ax.plot(risk, ret, colors[n-1], markeredgecolor='black', markersize=4, label=label)
+		
+	n, d = data.shape
+	w = np.repeat(1/n, n)
+	sigma, mu = fit(data, [w])
+	ax.plot(sigma, mu, 'yo', markeredgecolor='black', markersize=4, label='Naive portfolio')
+
+	save_image(plt, fig, ax)
+
+def save_image(plt, fig, ax):
 	ax.legend()
 	fig.savefig('ml_image_output.png', format='png')
 	plt.show()
-	#
-	###########################################################################################################################
 
 from build_example_data import build_example_ml_return_data
 from build_example_data import build_example_return_data
 
-# Markowitz
-#risk_data, ret_data, portfolios = markowitz_optimizer_no_lagrange(data)
-#print(portfolios)
-#plt.plot(risk_data, ret_data, 'o', markersize=3, markeredgecolor='black')
-
-# lasso
-#risk_lasso, ret_lasso = lasso_optimizer(data, 2)
-#plt.plot(risk_lasso, ret_lasso)
-
 data, test = build_example_ml_return_data()
 #data = build_example_return_data()
-plot_ml(data, test)
+
+
+
+# PLOTS
+#plot_ml(data, test)
+#plot_k_portfolios(data, 3, .0001, .2)
+plot_k_portfolios(data, 3, .006, .08)
+
 
 plt.show()

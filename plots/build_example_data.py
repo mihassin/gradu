@@ -3,7 +3,7 @@ import numpy as np
 def build_example_return_data():
 	data = np.array([])
 	files = ['FB.csv', 'IBM.csv', 'INTC.csv', 'NVDA.csv']
-	files = ['data/' + file for file in files]
+	files = ['stocks/' + file for file in files]
 	for file in files:
 		tmp = np.genfromtxt(file, delimiter=',')
 		tmp = tmp[2:]
@@ -18,7 +18,7 @@ def build_example_return_data():
 def build_example_ml_return_data():
 	data = np.array([])
 	files = ['AMD.csv', 'APC.csv', 'MCD.csv', 'WMT.csv']
-	files = ['data/' + file for file in files]
+	files = ['stocks/' + file for file in files]
 	for file in files:
 		tmp = np.genfromtxt(file, delimiter=',')
 		tmp = tmp[2:]
