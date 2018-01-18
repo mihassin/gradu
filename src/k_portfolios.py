@@ -69,6 +69,21 @@ def test_depth_first_no_reverse(D, k):
 				S.insert(0, L_)
 	return B
 
+def test_depth_first_indecies(data, k):
+	A = []
+	N, D = data.shape
+	S = [[i] for i in range(D)]
+	while S:
+		B = S.pop(0)
+		A.append(B)
+		if(len(B) < k):
+			i = B[-1]
+			for j in range(D-1, i, -1):
+				C = B.copy()
+				C.append(j)
+				S.insert(0, C)
+	return A
+
 data = list('abcd')
 print(test_depth_first(data, 3))
 print(test_depth_first_no_reverse(data, 3))
