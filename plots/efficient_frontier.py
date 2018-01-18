@@ -134,15 +134,20 @@ from build_example_data import build_example_ml_return_data
 def ml_plot():
 	data, test = build_example_ml_return_data()
 	portfolios = solve(data)
+	# efficient training frontier
 	returns, risks = fit(data, portfolios)
+	# test curve
 	returns_test, risks_test = fit(test, portfolios)
+	portfolios_test = solve(test)
+	returns_test_, risks_test_ = fit(test, portfolios_test)
 	fig = plt.figure()
 	ax = plt.subplot(111)
 	ax.set_title('Trained frontier vs actual portfolio performance curve')
 	ax.set_xlabel('Risk (standard deviation)')
 	ax.set_ylabel('Return')
-	ax.plot(risks, returns, label='Trained efficient frontier')
-	ax.plot(risks_test, returns_test, label='Actual portfolio performance curve')
+	ax.plot(risks, returns, 'o-', markersize=3, markeredgecolor='black', label='Trained efficient frontier')
+	ax.plot(risks_test, returns_test, 'o-', markersize=3, markeredgecolor='black', label='Actual portfolio performance curve')
+	#ax.plot(risks_test_, returns_test_, 'o-', markersize=3, markeredgecolor='black', label='Test data efficitent frontier')
 	#lgd = plot_legend(ax)
 	# presentation
 	#fig.savefig('ml_image_output.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
