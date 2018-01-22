@@ -29,6 +29,25 @@ def depth_first(D, k, minret, maxrisk):
 				S.append(L_)
 	return B
 
+def depth_first_indexes(data, k, minret, maxrisk):
+	A = []
+	N, D = data.shape
+	S = [[i] for i in range(N)]
+	while S:
+		B = S.pop(0)
+		sigma, mu = portfolio_risk_return(data, B)
+		print(B, sigma, mu)
+		if mu >= minret and sigma <= maxrisk:
+			A.append(B)
+		if(len(B) < k):
+			i = B[-1]
+			for j in range(N-1, i, -1):
+				C = B.copy()
+				C.append(j)
+				S.insert(0, C)
+	return A
+
+
 # Correct solution, with reverse
 def test_depth_first(D, k):
 	B = list()
@@ -72,13 +91,13 @@ def test_depth_first_no_reverse(D, k):
 def test_depth_first_indecies(data, k):
 	A = []
 	N, D = data.shape
-	S = [[i] for i in range(D)]
+	S = [[i] for i in range(N)]
 	while S:
 		B = S.pop(0)
 		A.append(B)
 		if(len(B) < k):
 			i = B[-1]
-			for j in range(D-1, i, -1):
+			for j in range(N-1, i, -1):
 				C = B.copy()
 				C.append(j)
 				S.insert(0, C)
