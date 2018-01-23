@@ -228,8 +228,9 @@ data = np.load('DJ30.ndarray')
 # PLOTS
 #plot_ml(data, test)
 #plot_k_portfolios(data, 3, .0001, .2)
-#plot_k_portfolios(data, 3, .00001, .09)
-plot_k_portfolios(data[:8], 7, .0004, .02)
+#plot_k_portfolios(data, 5, .00001, .09)
+plot_k_portfolios(data, 10, .0004, .02)
+#plot_k_portfolios(data, 5, .00043, .018)
 
 
 plt.show()
