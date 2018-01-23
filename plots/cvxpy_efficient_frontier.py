@@ -1,6 +1,7 @@
 import numpy as np
 from cvxpy import *
 from matplotlib import pyplot as plt
+from matplotlib import colors
 
 def random_weights(n):
 	w = np.random.rand(n)
@@ -188,39 +189,47 @@ def plot_k_portfolios(data, k, minret, maxrisk):
 	plot_boundaries(ax, minret, maxrisk)
 
 	indexes = depth_first_indexes(data, k, minret, maxrisk)
-	colors = ['bo', 'ro', 'go']
+	colors = get_colors(k)
 	for i in indexes:
 		subdata = split_data(data, i)
 		n = len(subdata)
 		w = np.repeat(1/n, n)
 		risk, ret = fit(subdata, [w])
 		label = 'Naive ' + str(n) + '-portfolios'
-		ax.plot(risk, ret, colors[n-1], markeredgecolor='black', markersize=4, label=label)
+		ax.plot(risk, ret, color=colors[n-1], linestyle=' ', marker='o', markeredgecolor='black', markersize=4, label=label)
 		
 	n, d = data.shape
 	w = np.repeat(1/n, n)
 	sigma, mu = fit(data, [w])
-	ax.plot(sigma, mu, 'yo', markeredgecolor='black', markersize=4, label='Naive portfolio')
+	ax.plot(sigma, mu, 'y*', markeredgecolor='black', markersize=6, label='Naive portfolio')
 
 	save_image(plt, fig, ax)
+
+def get_colors(n):
+	c = colors.get_named_colors_mapping()
+	c = list(c.values())
+	c = c[:-8]
+	return np.random.choice(c, n)
 
 def save_image(plt, fig, ax):
 	ax.legend()
 	fig.savefig('ml_image_output.png', format='png')
 	plt.show()
 
-from build_example_data import build_example_ml_return_data
-from build_example_data import build_example_return_data
+#from build_example_data import build_example_ml_return_data
+#from build_example_data import build_example_return_data
+from build_example_data import *
 
-data, test = build_example_ml_return_data()
+#data, test = build_example_ml_return_data()
 #data = build_example_return_data()
-
+data = np.load('DJ30.ndarray')
 
 
 # PLOTS
 #plot_ml(data, test)
 #plot_k_portfolios(data, 3, .0001, .2)
-plot_k_portfolios(data, 3, .006, .08)
+#plot_k_portfolios(data, 3, .00001, .09)
+plot_k_portfolios(data[:8], 7, .0004, .02)
 
 
 plt.show()

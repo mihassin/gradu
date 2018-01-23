@@ -31,10 +31,20 @@ def build_example_ml_return_data():
 	test = data[:,-12:]
 	return data[:,:-12], test
 
-def build_DJ30():
-	dtype = ['i8', 'datetime64', 'f8', 'f8', 'f8', 'f8', 'i8', 'f8', 'S5']
-	file = 'DJ30-1985-2003.csv'
-	data = np.genfromtxt(file, dtype=dtype, delimiter=';')
+rec_4756 = [b'bs', b'cat', b'dd', b'dis', b'ek', b'ge', b'gm', b'hpq', b'jnj', b'mmm', b'mo', b't', b'wmt', b'xom']
+
+def dump_DJ30(stocks):
+	file = 'stocks/DJ30-1985-2003.csv'
+	data = np.genfromtxt(file, dtype=None, names=True, delimiter=';')
+	returns = np.array([])
+	for stock in stocks:
+		tmp = np.array([d['open'] for d in data if d['name'] == stock])
+		r = np.array([(tmp[i+1] - tmp[i]) / tmp[i] for i in range(len(tmp) - 1)])
+		if not returns.size:
+			returns = np.array([r])
+		else:
+			returns = np.append(returns, [r], axis=0)
+	returns.dump('DJ30.ndarray')
 
 def correct_form_DJ30():
 	# must be exicuted in the same directory where this file is located
