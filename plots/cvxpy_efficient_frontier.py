@@ -151,8 +151,10 @@ def plot_regularization_path(data):
 	pt = portfolios.T
 	colors = get_colors(len(pt))
 	for i in range(len(pt)):
-		ax.plot(taus, pt[i], 'o-', color=colors[i])
+		ax.plot(range(len(taus)), pt[i], 'o-', color=colors[i])
 		print(pt[i])
+	taus.insert(0, 0)
+	ax.set_xticklabels(taus )
 	save_image(plt, fig, ax)
 
 
@@ -279,8 +281,8 @@ from build_example_data import *
 #data, test = build_example_ml_return_data()
 #data = build_example_return_data()
 data = np.load('DJ30.ndarray')
-plot_markowitz_vs_lasso(data, 100000)
-#plot_regularization_path(data)
+#plot_markowitz_vs_lasso(data, 100000)
+plot_regularization_path(data)
 
 # PLOTS
 #plot_ml(data, test)
