@@ -14,25 +14,17 @@ def random_portfolios(N, n):
 	return portfolios
 	
 def markowitz_optimizer_lagrange(data):
-	# w^T \Sigma w - \gamma \bar{r}^T w
+	# Really slow!
 	n, d = data.shape
 	w = Variable(n)
-	gamma = Parameter(sign='positive')
+	mu0 = Parameter(d, sign='positive')
 	rbar = np.mean(data, axis=1)
-	ret = rbar*w
-	Sigma = np.cov(data)
-	risk = quad_form(w, Sigma)
-	prob = Problem(Minimize(risk - gamma * ret), [sum_entries(w) == 1, w >= 0])
-	SAMPLES = 100
-	risk_data = np.zeros(SAMPLES)
-	ret_data = np.zeros(SAMPLES)
-	gamma_vals = np.logspace(-2, 3, num=SAMPLES)
-	for i in range(SAMPLES):
-		gamma.value = gamma_vals[i]
-		prob.solve()
-		risk_data[i] = sqrt(risk).value
-		ret_data[i] = ret.value
-	return risk_data, ret_data
+	R = data.T
+	objective = Minimize(1/d * sum_squares(mu0 - (R*w)))
+	constraints = [rbar*w == mu0, sum_entries(w) == 1, w >= 0]
+	prob = Problem(objective, constraints)
+	portfolios = solve_portfolios(data, w, mu0, prob, 0.0001, 0.0015)
+	return portfolios
 
 def markowitz_optimizer(data):
 	n, d = data.shape
@@ -44,18 +36,10 @@ def markowitz_optimizer(data):
 	objective = Minimize(risk)
 	constraints = [rbar*w == mu0, sum_entries(w) == 1, w >= 0]
 	prob = Problem(objective, constraints)
-	portfolios = []
-	i = 0
-	while i < 0.2:
-		mu0.value = i
-		prob.solve()
-		if type(w.value) != type(None):
-			portfolios.append(np.array(w.value).flatten())
-		i += 0.0001
+	portfolios = solve_portfolios(data, w, mu0, prob, 0.0001, 0.2)
 	return portfolios
 
 def lasso_optimizer(data, tau):
-	# ?
 	# w^T \Sigma w - \gamma \bar{r}^T w + tau||w||_1
 	n, d = data.shape
 	w = Variable(n)
@@ -66,18 +50,20 @@ def lasso_optimizer(data, tau):
 	objective = Minimize(risk + tau*norm(w,1))
 	constraints = [rbar*w == mu0, sum_entries(w) == 1, w >= 0]
 	prob = Problem(objective, constraints)
-	SAMPLES = 100
-	risk_data = np.zeros(SAMPLES)
-	ret_data = np.zeros(SAMPLES)
-	portfolios = np.zeros((SAMPLES, n))
-	mu0_values = np.linspace(0.013, 0.05, 100)
-	for i in range(SAMPLES):
-		mu0.value = mu0_values[i]
+	portfolios = solve_portfolios(data, w, mu0, prob, 0.0001, 0.0015)
+	return portfolios
+
+def solve_portfolios(data, w, mu0, prob, frequency = 0.0001, end_cond = 0.2):
+	portfolios = []
+	i = 0
+	while i < end_cond:
+		d = mu0.size[1]
+		mu0.value = np.repeat(i, d)
 		prob.solve()
-		risk_data[i] = sqrt(risk).value
-		ret_data[i] = rbar*w.value
-		portfolios[i] = np.array(w.value).flatten()
-	return risk_data, ret_data, portfolios
+		if type(w.value) != type(None):
+			portfolios.append(np.array(w.value).flatten())
+		i += frequency
+	return portfolios
 
 def fit(data, portfolios):
 	rbar = np.mean(data, axis=1)
@@ -97,8 +83,78 @@ def plot_efficient(data, ax, text, color=None):
 	if color:
 		ax.plot(risks, returns, color, label=text)
 	else:
-		ax.plot(risks, returns, color, label=text)
+		ax.plot(risks, returns, label=text)
 	return portfolios
+
+def plot_lasso(data, tau, ax, text, color=None):
+	portfolios = lasso_optimizer(data, tau)
+	risks, returns = fit(data, portfolios)
+	if color:
+		ax.plot(risks, returns, color, label=text)
+	else:
+		ax.plot(risks, returns, label=text)
+	return portfolios
+
+def plot_markowitz(data):
+	###########################################################################################################################
+	# figure init
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('Efficient Frontier')
+	ax.set_xlabel('Risk (standard deviation)')
+	ax.set_ylabel('Expected Return')
+	#
+	########################################################################################################################
+	# efficient frontiers
+	portfolios = plot_efficient(data, ax, 'Efficient frontier')
+	#
+	########################################################################################################################
+	# Display and store image
+	plt.show()
+	#save_image(plt, fig, ax)
+	#
+	###########################################################################################################################
+
+def plot_markowitz_vs_lasso(data, tau):
+	###########################################################################################################################
+	# figure init
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('Efficient Frontier vs Lasso ' + r'$\tau = $' + str(tau))
+	ax.set_xlabel('Risk (standard deviation)')
+	ax.set_ylabel('Expected Return')
+	#
+	########################################################################################################################
+	# portfolios
+	portfolios_lasso = plot_lasso(data, tau, ax, 'Lasso')
+	portfolios = plot_efficient(data, ax, 'Efficient frontier')	
+	#
+	########################################################################################################################
+	# Display and store image
+	#plt.show()
+	save_image(plt, fig, ax)
+	#
+	###########################################################################################################################
+
+def plot_regularization_path(data):
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('Regularization path')
+	ax.set_xlabel(r'$\tau$')
+	ax.set_ylabel('Weight')
+
+	taus = [0, 10, 100, 1000, 10000, 100000]
+	portfolios = np.array([lasso_optimizer(data, taus[0])[0]])
+	for tau in taus[1:]:
+		portfolios = np.append(portfolios, [lasso_optimizer(data, tau)[0]], axis=0)
+
+	pt = portfolios.T
+	colors = get_colors(len(pt))
+	for i in range(len(pt)):
+		ax.plot(taus, pt[i], 'o-', color=colors[i])
+		print(pt[i])
+	save_image(plt, fig, ax)
+
 
 def plot_ml(data, test):
 	###########################################################################################################################
@@ -107,7 +163,7 @@ def plot_ml(data, test):
 	ax = plt.subplot(111)
 	ax.set_title('Trained frontier vs actual portfolio performance curve')
 	ax.set_xlabel('Risk (standard deviation)')
-	ax.set_ylabel('Return')
+	ax.set_ylabel('Expected Return')
 	#
 	###########################################################################################################################
 	# Random portfolios
@@ -223,14 +279,17 @@ from build_example_data import *
 #data, test = build_example_ml_return_data()
 #data = build_example_return_data()
 data = np.load('DJ30.ndarray')
-
+plot_markowitz_vs_lasso(data, 100000)
+#plot_regularization_path(data)
 
 # PLOTS
 #plot_ml(data, test)
 #plot_k_portfolios(data, 3, .0001, .2)
 #plot_k_portfolios(data, 5, .00001, .09)
-plot_k_portfolios(data, 10, .0004, .02)
+#plot_k_portfolios(data, 10, .0004, .02)
 #plot_k_portfolios(data, 5, .00043, .018)
 
 
-plt.show()
+
+
+
