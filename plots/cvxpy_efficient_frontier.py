@@ -40,7 +40,7 @@ def markowitz_optimizer(data):
 	return portfolios
 
 def lasso_optimizer(data, tau):
-	# w^T \Sigma w - \gamma \bar{r}^T w + tau||w||_1
+	# w^T \Sigma w + tau||w||_1
 	n, d = data.shape
 	w = Variable(n)
 	mu0 = Parameter(sign='positive')
@@ -50,8 +50,38 @@ def lasso_optimizer(data, tau):
 	objective = Minimize(risk + tau*norm(w,1))
 	constraints = [rbar*w == mu0, sum_entries(w) == 1, w >= 0]
 	prob = Problem(objective, constraints)
-	portfolios = solve_portfolios(data, w, mu0, prob, 0.0001, 0.0015)
+	#portfolios = solve_portfolios(data, w, mu0, prob, 0.0001, 0.0015)
+	portfolios = solve_portfolios(data, w, mu0, prob, 0.0006, 0.00061)
+	print(portfolios)
 	return portfolios
+
+def markowitz_solve_single(data, mu):
+	n, d = data.shape
+	w = Variable(n)
+	mu0 = Parameter(sign='positive')
+	rbar = np.mean(data, axis=1)
+	Sigma = np.cov(data)
+	risk = quad_form(w, Sigma)
+	objective = Minimize(risk)
+	constraints = [rbar*w == mu0, sum_entries(w) == 1, w >= 0]
+	prob = Problem(objective, constraints)
+	mu0.value = mu
+	prob.solve()
+	return np.array(w.value).flatten()
+
+def lasso_solve_single(data, tau, mu):
+	n, d = data.shape
+	w = Variable(n)
+	mu0 = Parameter(sign='positive')
+	rbar = np.mean(data, axis=1)
+	Sigma = np.cov(data)
+	risk = quad_form(w, Sigma)
+	objective = Minimize(risk + tau*norm(w,1))
+	constraints = [rbar*w == mu0, sum_entries(w) == 1, w >= 0]
+	prob = Problem(objective, constraints)
+	mu0.value = mu
+	prob.solve()
+	return np.array(w.value).flatten()
 
 def solve_portfolios(data, w, mu0, prob, frequency = 0.0001, end_cond = 0.2):
 	portfolios = []
@@ -136,7 +166,7 @@ def plot_markowitz_vs_lasso(data, tau):
 	#
 	###########################################################################################################################
 
-def plot_regularization_path(data):
+def plot_regularization_path_old(data):
 	fig = plt.figure()
 	ax = plt.subplot(111)
 	ax.set_title('Regularization path')
@@ -157,6 +187,23 @@ def plot_regularization_path(data):
 	ax.set_xticklabels(taus )
 	save_image(plt, fig, ax)
 
+def plot_regularization_path(data, mu0):
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('Regularization path ' + r'$\mu_0 = $' + str(mu0))
+	ax.set_xlabel(r'$\tau$')
+	ax.set_ylabel('Weight')
+		
+	taus = [10**i for i in range(8)]
+	taus[0] = 0
+	portfolios = np.array([lasso_solve_single(data, 0, mu0)])
+	for tau in taus[1:]:
+		portfolios = np.append(portfolios, [lasso_solve_single(data, tau, 0.0006)], axis=0)
+	for p in portfolios.T:
+		ax.plot(range(len(taus)), p)
+	taus.insert(0, 0)
+	ax.set_xticklabels(taus )
+	save_image(plt, fig, ax)
 
 def plot_ml(data, test):
 	###########################################################################################################################
@@ -282,7 +329,7 @@ from build_example_data import *
 #data = build_example_return_data()
 data = np.load('DJ30.ndarray')
 #plot_markowitz_vs_lasso(data, 100000)
-plot_regularization_path(data)
+plot_regularization_path(data, 0.0006)
 
 # PLOTS
 #plot_ml(data, test)
