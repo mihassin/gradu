@@ -38,19 +38,19 @@ def plot_regularization_path(data, mu0):
 	ax.set_ylabel('Weight')
 	
 	mu = 0.0006
-	taus = [10**i for i in range(8)]
-	#taus = np.arange(1, 11)
+	#taus = [10**i for i in range(10)]
+	taus = np.arange(.00015, step=0.00001)
 	taus[0] = 0
 	print(taus)
 	portfolios = np.array([lasso_solve_single(data, 0, mu0)])
 	for tau in taus[1:]:
 		portfolios = np.append(portfolios, [lasso_solve_single(data, tau, mu)], axis=0)
 	for p in portfolios.T:
-		ax.plot(range(len(taus)), p)
-		#ax.plot(taus, p)
+		#ax.plot(range(len(taus)), p)
+		ax.plot(taus, p)
 	print(portfolios)
-	taus.insert(0, 0)
-	ax.set_xticklabels(taus)
+	#taus.insert(0, 0)
+	#ax.set_xticklabels(taus)
 	save_image(plt, fig, ax)
 
 def get_colors(n):
