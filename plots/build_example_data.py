@@ -86,6 +86,11 @@ def correct_form_DJ30():
 			line = line.replace('"', '')
 			f.write(line)
 
+def sp333_dump():
+	data = np.genfromtxt('stocks/sp500.csv', delimiter=',', skip_header=1)
+	data = data.T[1:]
+	data.dump('sp333.ndarray')
+
 def main():
 	data = build_example_return_data()
 	data.dump('example_returns.ndarray')

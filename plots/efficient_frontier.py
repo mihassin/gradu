@@ -110,9 +110,9 @@ def skeleton(returns, mu0, s0):
 	plot_random_portfolios(returns, ax)
 	m, s = plot_naive_max_portfolio(returns, ax)
 	
-	plot_k_portfolios(returns, ax)
+	#plot_k_portfolios(returns, ax)
 	plot_efficient_frontier(returns, ax)
-	plot_boundaries(returns, ax, mu0, s0)
+	#plot_boundaries(returns, ax, mu0, s0)
 
 	lgd = plot_legend(ax)
 	# presentation
@@ -122,20 +122,20 @@ def skeleton(returns, mu0, s0):
 def iid_n01_data():
 	return np.random.randn(4, 1000)
 
-def other_data():
-	return np.array([
-		1 * np.random.randn(1000) - 2,
-		1 * np.random.randn(1000) + 5,
-		1.5 * np.random.randn(1000) + 3,
-		10 * np.random.randn(1000) + 10
-		])
+def generate_multinormal():
+	mean = [.01, .05, .08, .035]
+	cov = [[.03 , .15 , .04 , .3], [.15 , .2 , .45 , .06], [.04 , .45 , .4 , .2], [.3 , .06 , .2 , .02]]
+	return np.random.multivariate_normal(mean, cov, 1000).T
+	
 
 from build_example_data import build_example_ml_return_data
 from build_example_data import build_example_return_data
 def ml_plot():
-	data, test = build_example_ml_return_data()
-	#data = np.random.randn(4, 10000)
-	#test = np.random.randn(4, 1000)
+	#data, test = build_example_ml_return_data()
+	data = np.random.randn(4, 10000)
+	test = np.random.randn(4, 1000)
+	#data = generate_multinormal()
+	#test = generate_multinormal()
 	portfolios = solve(data)
 	# efficient training frontier
 	returns, risks = fit(data, portfolios)
@@ -158,14 +158,20 @@ def ml_plot():
 	ax.legend()
 	fig.savefig('ml_image_output.png', format='png')
 	plt.show()
+	train_mu = np.mean(data, axis=1)
+	test_mu = np.mean(test, axis=1)
+	train_cov = np.cov(data)
+	test_cov = np.cov(test)
+	return train_mu, test_mu, train_cov, test_cov
 
 def main():
 	#returns = iid_n01_data()
 	#returns = other_data()
 	#returns = build_example_return_data()
-	#(mu0, s0) = (0.02, 0.058)
-	#skeleton(returns, mu0, s0)
-	ml_plot()
+	returns = np.load('sp333.ndarray')
+	(mu0, s0) = (0.02, 0.058)
+	skeleton(returns, mu0, s0)
+	#print(ml_plot())
 
 if __name__ == "__main__":
 	main()

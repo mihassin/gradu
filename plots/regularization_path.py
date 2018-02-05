@@ -10,7 +10,7 @@ def lasso_solve_single(data, tau, mu):
 	lambd = Parameter(sign='positive')
 	rbar = np.mean(data, axis=0)
 	objective = Minimize(1/t * sum_squares(mu0 - (R*w)) + lambd*norm(w, 1))
-	constraints = [rbar*w == mu, sum_entries(w) == 1]#, w >= 0]
+	constraints = [rbar*w == mu, sum_entries(w) == 1, w >= 0]
 	prob = Problem(objective, constraints)
 	mu0.value = np.repeat(mu, t)
 	lambd.value = tau
@@ -39,8 +39,8 @@ def plot_regularization_path(data, mu0):
 	
 	mu = 0.0006
 	#taus = [10**i for i in range(10)]
-	taus = np.arange(.00015, step=0.00001)
-	taus[0] = 0
+	taus = np.arange(1000, 21000, step=1000)
+	#taus[0] = 0
 	print(taus)
 	portfolios = np.array([lasso_solve_single(data, 0, mu0)])
 	for tau in taus[1:]:

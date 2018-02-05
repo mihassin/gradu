@@ -325,13 +325,17 @@ def save_image(plt, fig, ax):
 #from build_example_data import build_example_return_data
 from build_example_data import *
 
+# DATA
 #data, test = build_example_ml_return_data()
 #data = build_example_return_data()
-data = np.load('DJ30.ndarray')
-#plot_markowitz_vs_lasso(data, 100000)
-plot_regularization_path(data, 0.0006)
+#data = np.load('DJ30.ndarray')
+data = np.load('sp333.ndarray')
 
 # PLOTS
+plot_markowitz(data)
+#plot_markowitz_vs_lasso(data, 10000)
+#plot_regularization_path(data, 0.0006)
+
 #plot_ml(data, test)
 #plot_k_portfolios(data, 3, .0001, .2)
 #plot_k_portfolios(data, 5, .00001, .09)
