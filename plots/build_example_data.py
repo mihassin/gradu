@@ -89,7 +89,18 @@ def correct_form_DJ30():
 def sp333_dump():
 	data = np.genfromtxt('stocks/sp500.csv', delimiter=',', skip_header=1)
 	data = data.T[1:]
-	data.dump('sp333.ndarray')
+	r = np.array([])
+	r = np.array( [ [(stock[i+1] + stock[i]) / stock[i] for i in range(len(stock) - 1)  ] for stock in data] )
+	r.dump('sp333.ndarray')
+	returns = np.array([])
+	for stock in data:
+		r = np.array([ (stock[i+1] - stock[i]) / stock[i] for i in range(len(stock) -1)])
+		if not returns.size:
+			returns = np.array([r])
+		else:
+			returns = np.append(returns, [r], axis=0)
+	returns.dump('sp332.ndarray')
+
 
 def main():
 	data = build_example_return_data()

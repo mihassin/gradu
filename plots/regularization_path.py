@@ -23,7 +23,7 @@ def markowitz_solve_single(data, mu):
 	mu0 = Parameter(t, sign='positive')
 	rbar = np.mean(data, axis=0)
 	objective = Minimize(1/t * sum_squares(mu0 - (R*w)))
-	constraints = [rbar*w == mu, sum_entries(w) == 1, w >= 0]
+	constraints = [rbar*w == mu, sum_entries(w) == 1] #, w >= 0]
 	prob = Problem(objective, constraints)
 	mu0.value = np.repeat(mu, t)
 	prob.solve()
@@ -38,8 +38,8 @@ def plot_regularization_path(data, mu0):
 	ax.set_ylabel('Weight')
 	
 	mu = 0.0006
+	taus = np.arange(11000, step=1000)
 	#taus = [10**i for i in range(10)]
-	taus = np.arange(1000, 21000, step=1000)
 	#taus[0] = 0
 	print(taus)
 	portfolios = np.array([lasso_solve_single(data, 0, mu0)])
@@ -64,7 +64,11 @@ def save_image(plt, fig, ax):
 	fig.savefig('ml_image_output.png', format='png')
 	plt.show()
 
-data = np.load('DJ30.ndarray')
+# DATA
+#data = np.load('DJ30.ndarray')
+data = np.load('sp332.ndarray')
+#data = data[:100]
+
 R = data.T
 plot_regularization_path(R, 0.0006)
 
