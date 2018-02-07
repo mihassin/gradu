@@ -101,10 +101,19 @@ def sp333_dump():
 			returns = np.append(returns, [r], axis=0)
 	returns.dump('sp332.ndarray')
 
+def iid_n01_data(n, t):
+	return np.random.randn(n, t)
 
-def main():
-	data = build_example_return_data()
-	data.dump('example_returns.ndarray')
+def generate_multinormal(n):
+	mean = np.random.randn(n) * 0.05
+	Cov = generate_covariance_matrix(n)
+	return mean, Cov
 
-if __name__ == '__main__':
-	main()
+def generate_covariance_matrix(n):
+	cov = np.cov(np.random.random((n, n)))
+	while( not np.all(np.linalg.eigvals(cov) > 0) ):
+		cov = np.cov(np.random.random((n, n)))
+	return cov
+
+def sample_multinormal(mu, sigma, t):
+	return np.random.multivariate_normal(mu, sigma, t).T

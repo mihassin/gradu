@@ -318,7 +318,7 @@ def get_colors(n):
 
 def save_image(plt, fig, ax):
 	ax.legend()
-	fig.savefig('ml_image_output.png', format='png')
+	fig.savefig('frontier.png', format='png')
 	plt.show()
 
 #from build_example_data import build_example_ml_return_data

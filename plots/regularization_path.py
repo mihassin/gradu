@@ -61,7 +61,7 @@ def get_colors(n):
 
 def save_image(plt, fig, ax):
 	ax.legend()
-	fig.savefig('ml_image_output.png', format='png')
+	fig.savefig('reg_path.png', format='png')
 	plt.show()
 
 # DATA
