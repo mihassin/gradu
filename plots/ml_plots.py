@@ -53,7 +53,7 @@ def ml_actual_vs_estimates(n, t, test_samples):
 	returns_actual, risks_actual = fit_cvxopt(mu, sigma, portfolios)
 	fig = plt.figure()
 	ax = plt.subplot(111)
-	ax.set_title('Train frontier vs test frontier')
+	ax.set_title('Estimates n = ' + str(test_samples))
 	ax.set_xlabel('Risk')
 	ax.set_ylabel('Return')
 	rets = []
@@ -80,4 +80,4 @@ def save_image(plt, fig, ax):
 # DATA
 #ml_iid_plot(4, 1000, 1000)
 #ml_multinormal(4, 1000, 1000)
-ml_actual_vs_estimates(4, 1000, 100)
+ml_actual_vs_estimates(4, 1000, 1000)
