@@ -4,8 +4,8 @@ from matplotlib import pyplot as plt
 from matplotlib import colors
 
 # solvers
-from solvers import solve_cvxopt
-from solvers import fit_cvxopt
+from cvxopt_solvers import cvxopt_solve
+from cvxopt_solvers import cvxopt_fit
 
 # data
 from build_example_data import iid_n01_data
@@ -32,10 +32,10 @@ def ml_plot(train, test):
 	mean_test = np.mean(test, axis=1)
 	cov_test = np.cov(test)
 	# solve
-	portfolios = solve_cvxopt(mean_train, cov_train, train.shape[1])
+	portfolios = cvxopt_solve(mean_train, cov_train, train.shape[1])
 	# fit
-	returns_train, risks_train = fit_cvxopt(mean_train, cov_train, portfolios)
-	returns_test, risks_test = fit_cvxopt(mean_test, cov_test, portfolios)
+	returns_train, risks_train = cvxopt_fit(mean_train, cov_train, portfolios)
+	returns_test, risks_test = cvxopt_fit(mean_test, cov_test, portfolios)
 	# building the image
 	fig = plt.figure()
 	ax = plt.subplot(111)
@@ -49,8 +49,8 @@ def ml_plot(train, test):
 
 def ml_actual_vs_estimates(n, t, test_samples):
 	mu, sigma = generate_multinormal(n)
-	portfolios = solve_cvxopt(mu, sigma, t)
-	returns_actual, risks_actual = fit_cvxopt(mu, sigma, portfolios)
+	portfolios = cvxopt_solve(mu, sigma, 100)
+	returns_actual, risks_actual = cvxopt_fit(mu, sigma, portfolios)
 	fig = plt.figure()
 	ax = plt.subplot(111)
 	ax.set_title('Estimates n = ' + str(test_samples))
@@ -62,7 +62,7 @@ def ml_actual_vs_estimates(n, t, test_samples):
 		test = sample_multinormal(mu, sigma, t)
 		mean_test = np.mean(test, axis=1)
 		cov_test = np.cov(test)
-		returns_test, risks_test = fit_cvxopt(mean_test, cov_test, portfolios)
+		returns_test, risks_test = cvxopt_fit(mean_test, cov_test, portfolios)
 		rets.append(returns_test)
 		rsks.append(risks_test)
 		ax.plot(risks_test, returns_test, 'r-', markersize=3, markeredgecolor='black', label='Estimate frontiers')
@@ -80,4 +80,4 @@ def save_image(plt, fig, ax):
 # DATA
 #ml_iid_plot(4, 1000, 1000)
 #ml_multinormal(4, 1000, 1000)
-ml_actual_vs_estimates(4, 1000, 1000)
+ml_actual_vs_estimates(300, 5000, 10)
