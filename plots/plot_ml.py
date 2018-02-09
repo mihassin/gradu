@@ -72,7 +72,47 @@ def ml_actual_vs_estimates(n, t, test_samples):
 	ax.plot(risks_actual, returns_actual, 'g-', markersize=5, markeredgecolor='black', label='Actual frontier')
 	save_image(plt, fig, ax)
 
-def save_image(plt, fig, ax):
+def ml_train_vs_test_helper(mu, sigma, n, t, test_samples):
+	train = sample_multinormal(mu, sigma, t)
+	mean = np.mean(train, axis=1)
+	cov = np.cov(train)
+	portfolios = cvxopt_solve(mean, cov, 100)
+	returns_train, risks_train = cvxopt_fit(mean, cov, portfolios)
+	fig = plt.figure()
+	ax = plt.subplot(111)
+	ax.set_title('Test curves n = ' + str(test_samples))
+	ax.set_xlabel('Risk')
+	ax.set_ylabel('Return')
+	rets = []
+	rsks = []
+	for i in range(test_samples):
+		test = sample_multinormal(mu, sigma, t)
+		mean_test = np.mean(test, axis=1)
+		cov_test = np.cov(test)
+		returns_test, risks_test = cvxopt_fit(mean_test, cov_test, portfolios)
+		rets.append(returns_test)
+		rsks.append(risks_test)
+		ax.plot(risks_test, returns_test, 'r-', markersize=3, markeredgecolor='black', label='Test frontiers')
+	rets = np.array(rets)
+	rsks = np.array(rsks)
+	ax.plot(np.mean(rsks, axis=0), np.mean(rets, axis=0), 'k-', markersize=5, markeredgecolor='black', label='Average test frontier')
+	ax.plot(risks_train, returns_train, 'g-', markersize=5, markeredgecolor='black', label='Train frontier')
+	return fig, ax
+
+def ml_train_vs_test(n, t, test_samples):
+	mu, sigma = generate_multinormal(n)
+	fig, ax = ml_train_vs_test_helper(mu, sigma, n, t, test_samples)
+	save_image(fig, ax)
+
+def ml_train_vs_test_vs_actual(n, t, test_samples):
+	mu, sigma = generate_multinormal(n)
+	fig, ax = ml_train_vs_test_helper(mu, sigma, n, t, test_samples)
+	portfolios = cvxopt_solve(mu, sigma, 100)
+	returns_actual, risks_actual = cvxopt_fit(mu, sigma, portfolios)
+	ax.plot(risks_actual, returns_actual, 'b-', markersize=5, markeredgecolor='black', label='Actual frontier')
+	save_image(fig, ax)
+
+def save_image(fig, ax):
 	ax.legend()
 	fig.savefig('ml_image_output.png', format='png')
 	plt.show()
@@ -80,4 +120,6 @@ def save_image(plt, fig, ax):
 # DATA
 #ml_iid_plot(4, 1000, 1000)
 #ml_multinormal(4, 1000, 1000)
-ml_actual_vs_estimates(300, 5000, 10)
+#ml_actual_vs_estimates(300, 5000, 10)
+#ml_train_vs_test(100, 1000, 1000)
+ml_train_vs_test_vs_actual(100, 1000, 1000)

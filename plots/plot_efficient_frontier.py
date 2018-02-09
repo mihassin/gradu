@@ -57,7 +57,7 @@ def save_image(fig, ax):
 	fig.savefig('efficient_frontier.png', format='png')
 	plt.show()
 
-#data = np.load('DJ30.ndarray')
-data = np.load('sp332.ndarray')
+data = np.load('DJ30.ndarray')
+#data = np.load('sp332.ndarray')
 plot_efficient_frontier(data, 100)
-plot_efficient_frontier_maxrisk(data, 100, 0.5)
+#plot_efficient_frontier_maxrisk(data, 100, 0.5)
