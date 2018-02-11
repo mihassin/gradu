@@ -119,3 +119,30 @@ def cvxopt_naive_fit(mean, cov):
 	mu = np.dot(w, mean)
 	sigma = np.sqrt(np.dot(np.dot(w, cov), w))
 	return mu, sigma
+
+def lasso_attempt_1(mean, cov, N, maxrisk, tau):
+	n = cov.shape[0]
+	precision = 1/N
+	mus = [maxrisk*precision*i for i in range(1, N + 1)]
+	Q = opt.matrix(cov)
+	pbar = opt.matrix(mean)
+	G = -opt.matrix(np.eye(n))
+	h = opt.matrix(0.0, (n, 1))
+	A = opt.matrix(1.0, (1, n))
+	b = opt.matrix(1.0)
+	penalty = tau*opt.matrix(1.0, (n, 1))
+	portfolios = [solvers.qp(Q, penalty-mu*pbar, G, h, A, b)['x'] for mu in mus]
+	return portfolios
+
+def lasso_single(mean, cov, mu, tau):
+	n = cov.shape[0]
+	Q = opt.matrix(cov)
+	pbar = opt.matrix(mean)
+	G = -opt.matrix(np.eye(n))
+	h = opt.matrix(0.0, (n, 1))
+	A = opt.matrix(1.0, (1, n))
+	b = opt.matrix(1.0)
+	penalty = tau*opt.matrix(1.0, (n, 1))
+	portfolios = solvers.qp(Q, penalty-mu*pbar, G, h, A, b)['x']
+	return portfolios
+

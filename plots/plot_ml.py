@@ -1,7 +1,6 @@
 import numpy as np
 
 from matplotlib import pyplot as plt
-from matplotlib import colors
 
 # solvers
 from solvers import cvxopt_solve
