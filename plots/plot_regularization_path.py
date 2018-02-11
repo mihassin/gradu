@@ -43,6 +43,6 @@ def save_image(plt, fig, ax):
 	fig.savefig('reg_path.png', format='png')
 	plt.show()
 
-#data = np.load('DJ30.ndarray')
-data = np.load('sp332.ndarray')
+data = np.load('DJ30.ndarray')
+#data = np.load('sp332.ndarray')
 plot_regularization_path(data, 0.002)
