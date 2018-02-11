@@ -4,8 +4,8 @@ from matplotlib import pyplot as plt
 from matplotlib import colors
 
 # solvers
-from cvxopt_solvers import cvxopt_solve
-from cvxopt_solvers import cvxopt_fit
+from solvers import cvxopt_solve
+from solvers import cvxopt_fit
 
 # data
 from build_example_data import iid_n01_data
