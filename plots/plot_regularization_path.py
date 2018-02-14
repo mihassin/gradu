@@ -22,7 +22,7 @@ def plot_regularization_path(data, mu):
 	mean = np.mean(data, axis=1)
 	cov = np.cov(data)
 
-	taus = np.arange(100,1100, step=100)
+	taus = np.arange(0,11000, step=1000)
 	portfolios = np.array([[p for p in lasso_single(mean, cov, mu, int(taus[0]))]])
 	for tau in taus[1:]:
 		portfolios = np.append(portfolios, [[p for p in lasso_single(mean, cov, mu, int(tau))]], axis=0)
@@ -43,6 +43,6 @@ def save_image(plt, fig, ax):
 	fig.savefig('reg_path.png', format='png')
 	plt.show()
 
-data = np.load('DJ30.ndarray')
-#data = np.load('sp332.ndarray')
-plot_regularization_path(data, 0.002)
+#data = np.load('DJ30.ndarray')
+data = np.load('sp332.ndarray')
+plot_regularization_path(data, 0.0006)
