@@ -145,18 +145,3 @@ def lasso_single(mean, cov, mu, tau):
 	penalty = tau*opt.matrix(1.0, (n, 1))
 	portfolios = solvers.qp(Q, penalty-mu*pbar, G, h, A, b)['x']
 	return portfolios
-
-
-
-======================
-
-def f(coefs):
-	n, p = coefs.shape
-	norm_coefs = np.zeros((n, p))
-	sums = np.sum(coefs, axis=0)
-	for i in range(n):
-		for j in range(p):
-			if not sums[j] == 0:
-				c = 1/sums[j]
-				norm_coefs[i, j] = c*coefs[i,j]
-	return norm_coefs
