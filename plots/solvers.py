@@ -105,7 +105,6 @@ def cvxopt_solve_max_risk(mean, cov, N, maxrisk):
 	portfolios = [solvers.qp(S, -mu*pbar, G, h, A, b)['x'] for mu in mus]
 	return portfolios
 
-
 def cvxopt_fit(mean, cov, portfolios):
 	pbar = opt.matrix(mean)
 	S = opt.matrix(cov)

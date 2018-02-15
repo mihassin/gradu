@@ -7,6 +7,7 @@ from plot_helpers import save_image
 
 # solvers
 from solvers import cvxopt_solve
+from solvers import cvxopt_solve_single
 from solvers import cvxopt_fit
 
 # data
@@ -102,9 +103,42 @@ def ml_train_vs_test_vs_actual(n, t, test_samples):
 	ax.plot(risks_actual, returns_actual, 'b-', markersize=5, markeredgecolor='black', label='Actual frontier')
 	save_image(fig, ax, 'ml_output.png')
 
+def ml_cluster(n, t, test_samples):
+	fig, ax = create_fig('Portfolio cluster', 'Risk', 'Return')
+	mu, sigma = generate_multinormal(n)
+	train = sample_multinormal(mu, sigma, t)
+	mean = np.mean(train, axis=1)
+	cov = np.cov(train)
+	portfolio = cvxopt_solve_single(mean, cov)
+
+	rets = []
+	risks = []
+	for i in range(test_samples):
+		test = sample_multinormal(mu, sigma, t)
+		mean_test = np.mean(test, axis=1)
+		mean_cov = np.cov(test)
+		ret, risk = cvxopt_fit(mean_test, mean_cov, portfolio)
+		rets.append(ret)
+		risks.append(risk)
+		ax.plot(risk, ret, 'ro', markersize=5, markeredgecolor='black', label='Test Portfolio')
+	# Average
+	ax.plot(np.mean(risks), np.mean(rets), 'ko', markersize=5, markeredgecolor='black', label='Average Portfolio')
+
+	# Train
+	return_train, risk_train = cvxopt_fit(mean, cov, portfolio)
+	ax.plot(risk_train, return_train, 'go', markersize=5, markeredgecolor='black', label='Train Portfolio')
+
+	# Actual
+	portfolio = cvxopt_solve_single(mu, sigma)
+	return_actual, risk_actual = cvxopt_fit(mu, sigma, portfolio)
+	ax.plot(risk_actual, return_actual, 'bo', markersize=5, markeredgecolor='black', label='Actual Portfolio')
+	
+	save_image(fig, ax, 'ml_output.png')
+
 # DATA
 #ml_iid_plot(4, 1000, 1000)
 #ml_multinormal(4, 1000, 1000)
 #ml_actual_vs_estimates(300, 5000, 10)
-ml_train_vs_test(100, 1000, 1000)
-ml_train_vs_test_vs_actual(100, 1000, 1000)
+#ml_train_vs_test(100, 1000, 1000)
+#ml_train_vs_test_vs_actual(100, 1000, 1000)
+ml_cluster(100, 100, 1000)
