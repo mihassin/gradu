@@ -2,6 +2,9 @@ import numpy as np
 
 from matplotlib import pyplot as plt
 
+from plot_helpers import create_fig
+from plot_helpers import save_image
+
 # solvers
 from solvers import cvxopt_solve
 from solvers import cvxopt_fit
@@ -36,25 +39,17 @@ def ml_plot(train, test):
 	returns_train, risks_train = cvxopt_fit(mean_train, cov_train, portfolios)
 	returns_test, risks_test = cvxopt_fit(mean_test, cov_test, portfolios)
 	# building the image
-	fig = plt.figure()
-	ax = plt.subplot(111)
-	ax.set_title('Train frontier vs test frontier')
-	ax.set_xlabel('Risk')
-	ax.set_ylabel('Return')
+	fig, ax = create_fig('Train frontier vs test frontier', 'Risk', 'Return')
 	ax.plot(risks_train, returns_train, '-', markersize=3, markeredgecolor='black', label='Trained efficient frontier')
 	ax.plot(risks_test, returns_test, '-', markersize=3, markeredgecolor='black', label='Actual portfolio performance curve')
 	# presentation
-	save_image(plt, fig, ax)
+	save_image(fig, ax, plt_name='ml_output.png')
 
 def ml_actual_vs_estimates(n, t, test_samples):
 	mu, sigma = generate_multinormal(n)
 	portfolios = cvxopt_solve(mu, sigma, 100)
 	returns_actual, risks_actual = cvxopt_fit(mu, sigma, portfolios)
-	fig = plt.figure()
-	ax = plt.subplot(111)
-	ax.set_title('Estimates n = ' + str(test_samples))
-	ax.set_xlabel('Risk')
-	ax.set_ylabel('Return')
+	fig, ax = create_fig('Estimates n = ' + str(test_samples), 'Risk', 'Return')
 	rets = []
 	rsks = []
 	for i in range(test_samples):
@@ -69,7 +64,7 @@ def ml_actual_vs_estimates(n, t, test_samples):
 	rsks = np.array(rsks)
 	ax.plot(np.mean(rsks, axis=0), np.mean(rets, axis=0), 'k-', markersize=5, markeredgecolor='black', label='Average frontier')
 	ax.plot(risks_actual, returns_actual, 'g-', markersize=5, markeredgecolor='black', label='Actual frontier')
-	save_image(plt, fig, ax)
+	save_image(fig, ax, plt_name='ml_output.png')
 
 def ml_train_vs_test_helper(mu, sigma, n, t, test_samples):
 	train = sample_multinormal(mu, sigma, t)
@@ -77,11 +72,7 @@ def ml_train_vs_test_helper(mu, sigma, n, t, test_samples):
 	cov = np.cov(train)
 	portfolios = cvxopt_solve(mean, cov, 100)
 	returns_train, risks_train = cvxopt_fit(mean, cov, portfolios)
-	fig = plt.figure()
-	ax = plt.subplot(111)
-	ax.set_title('Test curves n = ' + str(test_samples))
-	ax.set_xlabel('Risk')
-	ax.set_ylabel('Return')
+	fig, ax = create_fig('Test curves n = ' + str(test_samples), 'Risk', 'Return')
 	rets = []
 	rsks = []
 	for i in range(test_samples):
@@ -101,7 +92,7 @@ def ml_train_vs_test_helper(mu, sigma, n, t, test_samples):
 def ml_train_vs_test(n, t, test_samples):
 	mu, sigma = generate_multinormal(n)
 	fig, ax = ml_train_vs_test_helper(mu, sigma, n, t, test_samples)
-	save_image(fig, ax)
+	save_image(fig, ax, 'ml_output.png')
 
 def ml_train_vs_test_vs_actual(n, t, test_samples):
 	mu, sigma = generate_multinormal(n)
@@ -109,16 +100,11 @@ def ml_train_vs_test_vs_actual(n, t, test_samples):
 	portfolios = cvxopt_solve(mu, sigma, 100)
 	returns_actual, risks_actual = cvxopt_fit(mu, sigma, portfolios)
 	ax.plot(risks_actual, returns_actual, 'b-', markersize=5, markeredgecolor='black', label='Actual frontier')
-	save_image(fig, ax)
-
-def save_image(fig, ax):
-	ax.legend()
-	fig.savefig('ml_image_output.png', format='png')
-	plt.show()
+	save_image(fig, ax, 'ml_output.png')
 
 # DATA
 #ml_iid_plot(4, 1000, 1000)
 #ml_multinormal(4, 1000, 1000)
 #ml_actual_vs_estimates(300, 5000, 10)
-#ml_train_vs_test(100, 1000, 1000)
+ml_train_vs_test(100, 1000, 1000)
 ml_train_vs_test_vs_actual(100, 1000, 1000)

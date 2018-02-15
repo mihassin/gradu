@@ -5,8 +5,9 @@ from cvxpy import *
 import cvxopt as opt
 from cvxopt import solvers, blas
 
-# CVXPY
+from sklearn import linear_model
 
+# CVXPY
 def cvxpy_lasso_single(data, tau, mu):
 	t, n = data.shape
 	w = Variable(n)
@@ -76,7 +77,6 @@ def cvxpy_fit(mean, cov, portfolios):
 	return risks, returns
 
 # CVXOPT
-
 def cvxopt_solve_single(mean, cov):
 	return cvxopt_solve(mean, cov, 1)
 
@@ -134,7 +134,7 @@ def lasso_attempt_1(mean, cov, N, maxrisk, tau):
 	portfolios = [solvers.qp(Q, penalty-mu*pbar, G, h, A, b)['x'] for mu in mus]
 	return portfolios
 
-def lasso_single(mean, cov, mu, tau):
+def lasso_single_attempt_1(mean, cov, mu, tau):
 	n = cov.shape[0]
 	Q = opt.matrix(cov)
 	pbar = opt.matrix(mean)
@@ -145,3 +145,33 @@ def lasso_single(mean, cov, mu, tau):
 	penalty = tau*opt.matrix(1.0, (n, 1))
 	portfolios = solvers.qp(Q, penalty-mu*pbar, G, h, A, b)['x']
 	return portfolios
+
+def lasso_single_attempt_2(mean, cov, mu, maxrisk, tau):
+	n = cov.shape[0]
+	precision = 1/N
+	mus = [maxrisk*precision*i for i in range(1, N + 1)]
+	Q = opt.matrix(cov)
+	G = -opt.matrix(np.eye(n))
+	h = opt.matrix(0.0, (n, 1))
+	A = opt.matrix([np.ones(n), mean])
+	b = opt.matrix([1.0, mu])
+	penalty = tau*opt.matrix(1.0, (n, 1))
+	portfolio = solvers.qp(Q, penalty, G, h, A, b)['x']
+	return portfolio
+
+# SKLEARN
+def normalized_unconstrained_lasso(data, mu0):
+	X = data.T
+	y = np.repeat(mu0, X.shape[0])
+	alphas, _, coefs = linear_model.lars_path(X, y, method='lasso')
+	n, p = coefs.shape
+	norm_coefs = np.zeros((n, p))
+	sums = np.sum(coefs, axis=0)
+	for i in range(n):
+		for j in range(p):
+			if not sums[j] == 0:
+				c = 1/sums[j]
+				norm_coefs[i, j] = c*coefs[i,j]
+	# First value is alpha where every coef is zero
+	# We require at least one coef to be non-zero
+	return alphas[1:], norm_coefs.T[1:]
