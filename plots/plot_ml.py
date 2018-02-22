@@ -9,6 +9,7 @@ from plot_helpers import save_image
 from solvers import cvxopt_solve
 from solvers import cvxopt_solve_single
 from solvers import cvxopt_fit
+from solvers import cvxopt_naive
 
 # data
 from build_example_data import iid_n01_data
@@ -108,7 +109,7 @@ def ml_cluster_random_model(n, t, test_samples, lambd):
 	ml_cluster(n, t, test_samples, lambd, mu, sigma)
 
 def ml_cluster(n, t, test_samples, lambd, mu, sigma):
-	fig, ax = create_fig('Portfolio cluster ' + r'$\lambda = $' + str(lambd), 'Risk', 'Return')
+	fig, ax = create_fig('No-short Markowitz portfolio cluster ' + r'$\lambda = $' + str(lambd), 'Risk', 'Return')
 	train = sample_multinormal(mu, sigma, t)
 	mean = np.mean(train, axis=1)
 	cov = np.cov(train)
@@ -138,14 +139,45 @@ def ml_cluster(n, t, test_samples, lambd, mu, sigma):
 	
 	save_image(fig, ax, 'ml_output.png')
 
+def ml_cluster_naive(n, t, test_samples, mu, sigma):
+	fig, ax = create_fig('Naïve portfolio cluster', 'Risk', 'Return')
+	train = sample_multinormal(mu, sigma, t)
+	mean = np.mean(train, axis=1)
+	cov = np.cov(train)
+	portfolio = cvxopt_naive(n)
+
+	rets = []
+	risks = []
+	for i in range(test_samples):
+		test = sample_multinormal(mu, sigma, t)
+		mean_test = np.mean(test, axis=1)
+		mean_cov = np.cov(test)
+		ret, risk = cvxopt_fit(mean_test, mean_cov, portfolio)
+		rets.append(ret)
+		risks.append(risk)
+		ax.plot(risk, ret, 'ro', markersize=5, markeredgecolor='black', label='Test Portfolio')
+	# Average
+	ax.plot(np.mean(risks), np.mean(rets), 'ko', markersize=5, markeredgecolor='black', label='Average Portfolio')
+
+	# Train
+	return_train, risk_train = cvxopt_fit(mean, cov, portfolio)
+	ax.plot(risk_train, return_train, 'go', markersize=5, markeredgecolor='black', label='Train Portfolio')
+
+	# Actual
+	return_actual, risk_actual = cvxopt_fit(mu, sigma, portfolio)
+	ax.plot(risk_actual, return_actual, 'bo', markersize=5, markeredgecolor='black', label='Actual Portfolio')
+	
+	save_image(fig, ax, 'ml_output.png')
+
 # DATA
 #ml_iid_plot(4, 1000, 1000)
 #ml_multinormal(4, 1000, 1000)
 #ml_actual_vs_estimates(300, 5000, 10)
 #ml_train_vs_test(100, 1000, 1000)
 #ml_train_vs_test_vs_actual(100, 1000, 1000)
-lambd = 50
+#lambd = 50
 n = 100
 mu, sigma = generate_multinormal(n)
 for i in range(3):
-	ml_cluster(n, 100, 500, lambd, mu, sigma)
+#	ml_cluster(n, 100, 10000, lambd, mu, sigma)
+	ml_cluster_naive(n, 100, 500, mu, sigma)

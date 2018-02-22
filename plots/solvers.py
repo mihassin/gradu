@@ -77,6 +77,9 @@ def cvxpy_fit(mean, cov, portfolios):
 	return risks, returns
 
 # CVXOPT
+def cvxopt_naive(n):
+	return [opt.matrix(np.repeat(1/n, n))]
+
 def cvxopt_solve_single(mean, cov, lambd):
 	n = cov.shape[0]
 	S = opt.matrix(cov)
