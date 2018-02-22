@@ -77,8 +77,16 @@ def cvxpy_fit(mean, cov, portfolios):
 	return risks, returns
 
 # CVXOPT
-def cvxopt_solve_single(mean, cov):
-	return cvxopt_solve(mean, cov, 1)
+def cvxopt_solve_single(mean, cov, lambd):
+	n = cov.shape[0]
+	S = opt.matrix(cov)
+	pbar = opt.matrix(-lambd*mean)
+	G = -opt.matrix(np.eye(n))
+	h = opt.matrix(0.0, (n, 1))
+	A = opt.matrix(1.0, (1, n))
+	b = opt.matrix(1.0)
+	portfolio = [solvers.qp(S, pbar, G, h, A, b)['x']]
+	return portfolio
 
 def cvxopt_solve(mean, cov, N):
 	n = cov.shape[0]

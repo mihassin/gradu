@@ -103,13 +103,13 @@ def ml_train_vs_test_vs_actual(n, t, test_samples):
 	ax.plot(risks_actual, returns_actual, 'b-', markersize=5, markeredgecolor='black', label='Actual frontier')
 	save_image(fig, ax, 'ml_output.png')
 
-def ml_cluster(n, t, test_samples):
-	fig, ax = create_fig('Portfolio cluster', 'Risk', 'Return')
+def ml_cluster(n, t, test_samples, lambd):
+	fig, ax = create_fig('Portfolio cluster ' + r'$\lambda = $' + str(lambd), 'Risk', 'Return')
 	mu, sigma = generate_multinormal(n)
 	train = sample_multinormal(mu, sigma, t)
 	mean = np.mean(train, axis=1)
 	cov = np.cov(train)
-	portfolio = cvxopt_solve_single(mean, cov)
+	portfolio = cvxopt_solve_single(mean, cov, lambd)
 
 	rets = []
 	risks = []
@@ -129,7 +129,7 @@ def ml_cluster(n, t, test_samples):
 	ax.plot(risk_train, return_train, 'go', markersize=5, markeredgecolor='black', label='Train Portfolio')
 
 	# Actual
-	portfolio = cvxopt_solve_single(mu, sigma)
+	portfolio = cvxopt_solve_single(mu, sigma, lambd)
 	return_actual, risk_actual = cvxopt_fit(mu, sigma, portfolio)
 	ax.plot(risk_actual, return_actual, 'bo', markersize=5, markeredgecolor='black', label='Actual Portfolio')
 	
@@ -141,4 +141,5 @@ def ml_cluster(n, t, test_samples):
 #ml_actual_vs_estimates(300, 5000, 10)
 #ml_train_vs_test(100, 1000, 1000)
 #ml_train_vs_test_vs_actual(100, 1000, 1000)
-ml_cluster(100, 100, 1000)
+lambd = 50
+ml_cluster(100, 100, 500, lambd)
