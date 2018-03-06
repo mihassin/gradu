@@ -175,9 +175,9 @@ def ml_cluster_naive(n, t, test_samples, mu, sigma):
 #ml_actual_vs_estimates(300, 5000, 10)
 #ml_train_vs_test(100, 1000, 1000)
 #ml_train_vs_test_vs_actual(100, 1000, 1000)
-#lambd = 50
+lambd = 50
 n = 100
 mu, sigma = generate_multinormal(n)
 for i in range(3):
-#	ml_cluster(n, 100, 10000, lambd, mu, sigma)
-	ml_cluster_naive(n, 100, 500, mu, sigma)
+	ml_cluster(n, 100, 500, lambd, mu, sigma)
+	#ml_cluster_naive(n, 100, 500, mu, sigma)
