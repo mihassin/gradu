@@ -101,6 +101,12 @@ def sp333_dump():
 			returns = np.append(returns, [r], axis=0)
 	returns.dump('sp332.ndarray')
 
+def sp_data_remove_outliers():
+	data = np.load('sp332.ndarray')
+	mean = data.mean(axis=1)
+	return data[mean < 0.005]
+	
+
 def iid_n01_data(n, t):
 	return np.random.randn(n, t)
 

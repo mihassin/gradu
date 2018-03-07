@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 from plot_helpers import create_fig
 from plot_helpers import save_image
 
+from build_example_data import sp_data_remove_outliers
+
 from randomized_k_portfolios import uniform
 from randomized_k_portfolios import return_weighted
 from randomized_k_portfolios import markowitz_randomized
@@ -75,7 +77,8 @@ def plot_markowitz_randomized(data, k, size, precision, max_lambd, mu0, sigma0):
 	save_image(fig, ax)
 
 
-data = np.load('sp332.ndarray')
-#plot_uniform(data, 50, 100, 10)
-#plot_return_weighted(data, 50, 100, 10)
-plot_markowitz_randomized(data, 50, 1000, 10, 0.2, .00125, .014)
+#data = np.load('sp332.ndarray')
+data = sp_data_remove_outliers()
+#plot_uniform(data, 50, 100, .2)
+#plot_return_weighted(data, 50, 100, .2)
+plot_markowitz_randomized(data, 10, 1000, 10, 0.2, .001, .018)
