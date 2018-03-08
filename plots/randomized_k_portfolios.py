@@ -44,12 +44,6 @@ def markowitz_randomized(n, k, size, mean, cov, lambd, mu0, sigma0):
 	return markowitz, np.array([randomized_k_portfolios(n, k, markowitz, size) for i in range(size)])
 
 
-
-def asset_update(k, p, mean, cov, mu0, sigma0):
-	n = mean.shape[0]
-	RP = randomized_k_portfolios(n, k, p, size=1000)
-	mu1, sigma1 = update_return_risk(RP, mu0, sigma0)
-
 def asset_update_old(k, p, mean, cov, mu0, sigma0):
 	# Number of assets
 	n = mean.shape[0]
@@ -86,6 +80,89 @@ def asset_update_old(k, p, mean, cov, mu0, sigma0):
 	else:
 		p_new = p
 	return RPIR, p_new
+
+
+def asset_update(k, mean, cov, mu0, sigma0):
+	n = mean.shape[0]
+	p = np.repeat(1/n, n)
+	RPIR = np.array([])
+	init = True
+	s0 = 0
+	m0 = 0
+	while(init or s0 > sigma0 or m0 < mu0):
+		init = False
+		RP = randomized_k_portfolios(n, k, p, size=1000)
+		risks, returns = cvxpy_fit(mean, cov, RP)
+		s0, m0, a = narrow_IR(risks, returns, gamma=.5)
+		ir = np.array([])
+		for i in range(len(RP)):
+			if returns[i] > m0 and risks[i] < s0:
+				if ir.shape[0] == 0:
+					ir = np.array([RP[i]])
+				else:
+					ir = np.append(ir, [RP[i]], axis=0)
+		p = np.zeros(n)
+		m = ir.shape[0]
+		if m > 0:
+			for i in range(n):
+				z = 0
+				for r in ir:
+					if r[i] > 0:
+						z += 1
+				p[i] = z / m
+			RPIR = np.copy(ir)
+		else:
+			print('moi')
+			return RPIR, s0, m0
+		p /= p.sum()
+		print('s: ' + str(s0) + ', m: ' + str(m0))
+	return RPIR, s0, m0
+
+def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
+	n = mean.shape[0]
+	p = np.repeat(1/n, n)
+	RP = randomized_k_portfolios(n, k, p, size=1000)
+	risks, returns = cvxpy_fit(mean, cov, RP)
+	s0, m0, a = narrow_IR(risks, returns, gamma=.5)
+	RPIR = np.array([])
+	while(s0 > sigma0 or m0 < mu0):
+		ir = np.array([])
+		# IR = {(sigma, mu) : sigma < s0 and mu > m0}
+		for i in range(len(RP)):
+			if returns[i] > m0 and risks[i] < s0:
+				if ir.shape[0] == 0:
+					ir = np.array([RP[i]])
+				else:
+					ir = np.append(ir, [RP[i]], axis=0)
+		p = np.zeros(n)
+		m = ir.shape[0]
+		# If IR contains points
+		if m > 0:
+			for i in range(n):
+				z = 0
+				for r in ir:
+					if r[i] > 0:
+						z += 1
+				p[i] = z / m
+			RPIR = np.copy(ir)
+		# else report previous best
+		else:
+			return RPIR, s0, m0
+		# normalization
+		p /= p.sum()
+		# create RP for next iteration
+		RP = randomized_k_portfolios(n, k, p, size=1000)
+		# decrease s0 by the factor alpha of the difference of s0 and sigma0
+		if s0 > sigma0:
+			s0 = s0 - (s0 - sigma0) * alpha
+		# increase m0 by the factor alpha of the difference of mu0 and m0
+		if m0 < mu0:
+			m0 = m0 + (mu0 - m0) * alpha
+		# adding zeros
+		if (s0 - sigma0)*alpha < e and (mu0 - m0)*alpha < e:
+			return RPIR, s0, m0
+		print('s: ' + str(s0) + ', m: ' + str(m0))
+	return RPIR, s0, m0
 
 def narrow_IR(risks, returns, alpha=0.01, gamma=0.8):
 	a = 0
