@@ -87,57 +87,30 @@ def asset_update_old(k, p, mean, cov, mu0, sigma0):
 		p_new = p
 	return RPIR, p_new
 
-def g(risks, returns, alpha):
-	min_risk = risks.min()
+def narrow_IR(risks, returns, alpha=0.01, gamma=0.8):
+	a = 0
+	a += alpha
+	i = 1
+	n = returns.shape[0]
 	max_risk = risks.max()
 	min_return = returns.min()
-	beta = 0
-	beta += alpha
-	inside_risks = []
-	inside_returns = [r for r in returns]
-	outside_returns = []
-	outside_risks = []
-	while(len(inside_returns) > 800):
-		inside_risks = []
-		inside_returns = []
-		outside_returns = []
-		outside_risks = []
+	while(i > gamma):
+		i = 0
+		s0 = max_risk*(1-a)
+		m0 = min_return*(1+a)	
 		for ri, re in zip(risks, returns):
-			s0 = max_risk*(1-beta)
-			m0 = min_return*(1+beta)
 			if s0 > ri and m0 < re:
-				inside_risks.append(ri)
-				inside_returns.append(re)
-			else:
-				outside_returns.append(re)
-				outside_risks.append(ri)
-		if(len(inside_returns) > 800):
-			beta += alpha
+				i += 1
+		i /= n
+		if(i > gamma):
+			a += alpha
 		else:
-			beta -= alpha
-	sigma = max_risk*(1-beta)
-	mu = min_return*(1+beta)
-	return sigma, mu, beta
-	'''
-	inside_risks = []
-	inside_returns = []
-	outside_returns = []
-	outside_risks = []
-	for ri, re in zip(risks, returns):
-		s0 = max_risk*(1-beta)
-		m0 = min_return*(1+beta)
-		if s0 > ri and m0 < re:
-			inside_risks.append(ri)
-			inside_returns.append(re)
-		else:
-			outside_returns.append(re)
-			outside_risks.append(ri)		
-	plt.plot(inside_risks, inside_returns, 'bo')
-	plt.plot(outside_risks, outside_returns, 'ro')
-	plt.axhline(mu)
-	plt.axvline(sigma)
-	plt.show()
-	return sigma, mu, beta'''
+			a -= alpha
+	sigma = max_risk*(1-a)
+	mu = min_return*(1+a)
+	return sigma, mu, a
+
+
 
 '''
 j = 0

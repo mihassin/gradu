@@ -77,6 +77,25 @@ def plot_markowitz_randomized(data, k, size, precision, max_lambd, mu0, sigma0):
 	save_image(fig, ax)
 
 
+def plot_new_window(risks, returns, s0, m0, alpha):
+	inside_risks = []
+	inside_returns = []
+	outside_returns = []
+	outside_risks = []
+	for ri, re in zip(risks, returns):
+		if s0 > ri and m0 < re:
+			inside_risks.append(ri)
+			inside_returns.append(re)
+		else:
+			outside_returns.append(re)
+			outside_risks.append(ri)		
+	plt.plot(inside_risks, inside_returns, 'bo')
+	plt.plot(outside_risks, outside_returns, 'ro')
+	plt.axhline(m0)
+	plt.axvline(s0)
+	plt.show()
+
+
 #data = np.load('sp332.ndarray')
 data = sp_data_remove_outliers()
 #plot_uniform(data, 50, 100, .2)
