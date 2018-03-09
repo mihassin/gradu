@@ -51,6 +51,9 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 	risks, returns = cvxpy_fit(mean, cov, RP)
 	s0, m0 = initial_borders(risks, returns, gamma=.5)
 	RPIR = np.array([])
+	x = np.array([])
+	y = np.array([])
+	j = 0
 	while(s0 > sigma0 or m0 < mu0):
 		ir = np.array([])
 		ir00 = np.array([])
@@ -68,6 +71,11 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 					ir00 = np.append(ir00, [RP[i]], axis=0)
 		p = np.zeros(n)
 		m = ir.shape[0]
+		j += 1
+		x = np.append(x, j)
+		y = np.append(y, ir00.shape[0])
+		print(x)
+		print(y)
 		# If IR contains points
 		if m > 0:
 			for i in range(n):
@@ -78,10 +86,11 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 				p[i] = z / m
 			RPIR = np.copy(ir)
 			ri, re  = cvxpy_fit(mean,cov,ir00)
-			plt.plot(ri, re, 'o')
+			#plt.plot(ri, re, 'o')
 		# else report previous best
 		else:
 			print('Interesting region was empty. Reporting previous iteration')
+			plt.plot(x, y)
 			return RPIR, s0, m0
 		# normalization
 		p /= p.sum()
@@ -96,11 +105,13 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 			m0 = m0 + (mu0 - m0) * alpha
 		# adding zeros
 		if (s0 - sigma0)*alpha < e and (mu0 - m0)*alpha < e:
+			plt.plot(x, y)
 			return RPIR, s0, m0
 		print('s: ' + str(s0) + ', m: ' + str(m0))
+	plt.plot(x, y)
 	return RPIR, s0, m0
 
-a,s,m=asset_update(10,mean,cov,0.0012,0.014,alpha=0.3,e=1e-5)
+a,s,m=asset_update(10,mean,cov,0.0012,0.014,alpha=0.3)
 
 def initial_borders(risks, returns, alpha=0.01, gamma=0.8):
 	a = 0
