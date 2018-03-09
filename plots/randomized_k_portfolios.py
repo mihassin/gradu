@@ -44,89 +44,16 @@ def markowitz_randomized(n, k, size, mean, cov, lambd, mu0, sigma0):
 	return markowitz, np.array([randomized_k_portfolios(n, k, markowitz, size) for i in range(size)])
 
 
-def asset_update_oldest(k, p, mean, cov, mu0, sigma0):
-	# Number of assets
-	n = mean.shape[0]
-	# Size amout of random portfolios drawn with the distribution of p 
-	RP = randomized_k_portfolios(n, k, p, size=1000)
-	# Risks and returns of random portfolios RP
-	risks, returns = cvxpy_fit(mean, cov, RP)
-	# Initialization of intersection of RP and interesting region IR {(risk, return) : risk < sigma0 and return > mu0}
-	RPIR = np.array([])
-	# Method to find the set objects of RPIR
-	for i in range(len(RP)):
-		if returns[i] > mu0 and risks[i] < sigma0:
-			if RPIR.shape[0] == 0:
-				RPIR = np.array([RP[i]])
-			else:
-				RPIR = np.append(RPIR, [RP[i]], axis=0)
-	# New asset distribution p_new initialization
-	p_new = np.zeros(n)
-	# Cardinality of RPIR
-	m = RPIR.shape[0]
-	# if statement to evade zero division error within this clause
-	if m > 0:
-		# p_new update method
-		for i in range(n):
-			z = 0
-			for r in RPIR:
-				if r[i] > 0:
-					z += 1
-		#p[i] = RPIR[RPIR[:, i] > 0].shape[0] / m
-			p_new[i] = z / m
-	# Normalization of p_new					
-	if not p_new.sum() == 0: 
-		p_new /= p_new.sum()
-	else:
-		p_new = p
-	return RPIR, p_new
-
-
-def asset_update_older(k, mean, cov, mu0, sigma0):
-	n = mean.shape[0]
-	p = np.repeat(1/n, n)
-	RPIR = np.array([])
-	init = True
-	s0 = 0
-	m0 = 0
-	while(init or s0 > sigma0 or m0 < mu0):
-		init = False
-		RP = randomized_k_portfolios(n, k, p, size=1000)
-		risks, returns = cvxpy_fit(mean, cov, RP)
-		s0, m0, a = narrow_IR(risks, returns, gamma=.5)
-		ir = np.array([])
-		for i in range(len(RP)):
-			if returns[i] > m0 and risks[i] < s0:
-				if ir.shape[0] == 0:
-					ir = np.array([RP[i]])
-				else:
-					ir = np.append(ir, [RP[i]], axis=0)
-		p = np.zeros(n)
-		m = ir.shape[0]
-		if m > 0:
-			for i in range(n):
-				z = 0
-				for r in ir:
-					if r[i] > 0:
-						z += 1
-				p[i] = z / m
-			RPIR = np.copy(ir)
-		else:
-			print('moi')
-			return RPIR, s0, m0
-		p /= p.sum()
-		print('s: ' + str(s0) + ', m: ' + str(m0))
-	return RPIR, s0, m0
-
 def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 	n = mean.shape[0]
 	p = np.repeat(1/n, n)
 	RP = randomized_k_portfolios(n, k, p, size=1000)
 	risks, returns = cvxpy_fit(mean, cov, RP)
-	s0, m0, a = narrow_IR(risks, returns, gamma=.5)
+	s0, m0 = initial_borders(risks, returns, gamma=.5)
 	RPIR = np.array([])
 	while(s0 > sigma0 or m0 < mu0):
 		ir = np.array([])
+		ir00 = np.array([])
 		# IR = {(sigma, mu) : sigma < s0 and mu > m0}
 		for i in range(len(RP)):
 			if returns[i] > m0 and risks[i] < s0:
@@ -134,6 +61,11 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 					ir = np.array([RP[i]])
 				else:
 					ir = np.append(ir, [RP[i]], axis=0)
+			if returns[i] > mu0 and risks[i] < sigma0:
+				if ir00.shape[0] == 0:
+					ir00 = np.array([RP[i]])
+				else:
+					ir00 = np.append(ir00, [RP[i]], axis=0)
 		p = np.zeros(n)
 		m = ir.shape[0]
 		# If IR contains points
@@ -145,7 +77,7 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 						z += 1
 				p[i] = z / m
 			RPIR = np.copy(ir)
-			ri, re  = cvxpy_fit(mean,cov,RPIR)
+			ri, re  = cvxpy_fit(mean,cov,ir00)
 			plt.plot(ri, re, 'o')
 		# else report previous best
 		else:
@@ -168,7 +100,9 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 		print('s: ' + str(s0) + ', m: ' + str(m0))
 	return RPIR, s0, m0
 
-def narrow_IR(risks, returns, alpha=0.01, gamma=0.8):
+a,s,m=asset_update(10,mean,cov,0.0012,0.014,alpha=0.3,e=1e-5)
+
+def initial_borders(risks, returns, alpha=0.01, gamma=0.8):
 	a = 0
 	a += alpha
 	i = 1
@@ -189,23 +123,4 @@ def narrow_IR(risks, returns, alpha=0.01, gamma=0.8):
 			a -= alpha
 	sigma = max_risk*(1-a)
 	mu = min_return*(1+a)
-	return sigma, mu, a
-
-
-
-'''
-j = 0
-r1 = []
-r2 = []
-for i in range(100):
-	print(i)
-	RPIR1, p1 = asset_update(10, p0, mean, cov, 0.001, 0.018) 
-	RPIR2, p2 = asset_update(10, p1, mean, cov, 0.001, 0.018) 
-	i1 = RPIR1.shape[0] / 1000
-	i2 = RPIR2.shape[0] / 1000
-	r1.append(i1)
-	r2.append(i2)
-	if i2 > i1:
-		j += 1
-j / 100
-'''
+	return sigma, mu
