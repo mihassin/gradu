@@ -44,7 +44,7 @@ def markowitz_randomized(n, k, size, mean, cov, lambd, mu0, sigma0):
 	return markowitz, np.array([randomized_k_portfolios(n, k, markowitz, size) for i in range(size)])
 
 
-def asset_update_old(k, p, mean, cov, mu0, sigma0):
+def asset_update_oldest(k, p, mean, cov, mu0, sigma0):
 	# Number of assets
 	n = mean.shape[0]
 	# Size amout of random portfolios drawn with the distribution of p 
@@ -82,7 +82,7 @@ def asset_update_old(k, p, mean, cov, mu0, sigma0):
 	return RPIR, p_new
 
 
-def asset_update(k, mean, cov, mu0, sigma0):
+def asset_update_older(k, mean, cov, mu0, sigma0):
 	n = mean.shape[0]
 	p = np.repeat(1/n, n)
 	RPIR = np.array([])
@@ -145,13 +145,17 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 						z += 1
 				p[i] = z / m
 			RPIR = np.copy(ir)
+			ri, re  = cvxpy_fit(mean,cov,RPIR)
+			plt.plot(ri, re, 'o')
 		# else report previous best
 		else:
+			print('Interesting region was empty. Reporting previous iteration')
 			return RPIR, s0, m0
 		# normalization
 		p /= p.sum()
 		# create RP for next iteration
 		RP = randomized_k_portfolios(n, k, p, size=1000)
+		risks, returns = cvxpy_fit(mean, cov, RP)
 		# decrease s0 by the factor alpha of the difference of s0 and sigma0
 		if s0 > sigma0:
 			s0 = s0 - (s0 - sigma0) * alpha
