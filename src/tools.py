@@ -44,10 +44,9 @@ class Tools:
 	:param x1: selling price
 	:returns: total return
 	"""
-	# TODO include fees parameter
 	@staticmethod
 	def total_return(x0, x1):
-		return x1 / x0
+		return (Tools.fee_constant * x1) / x0
 
 
 	"""Check if a value is contained in a range

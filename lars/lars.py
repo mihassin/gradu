@@ -5,6 +5,7 @@ filename = 'Average_Value_Weighted_Returns.csv'
 data = np.genfromtxt(filename, delimiter=',')
 
 # data 1976/07 - 2006/06 
+# 540 - 601
 data = data[601:961]
 tdata = np.transpose(data)
 

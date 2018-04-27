@@ -67,5 +67,18 @@ class Cleanser:
 		print('Status:', i, "/", n, p, '% completed.')
 
 
+	@staticmethod
+	def create_R_matrix():
+		data_path = get_project_root() + '/data'
+		dirs = immidiate_subdirs(data_path)
+		# remove directories with missing trimmed arrays
+		for d in dirs:
+			if not os.path.exists(data_path + '/' + d + '/trimmed.ndarray'):
+				dirs.remove(d)
+		headers = np.array(['date'])
+		R = np.array([headers])
+		return dirs
+
+
 if __name__ == "__main__":
 	Cleanser.clean_data()
