@@ -1,5 +1,8 @@
 import numpy as np
 
+import matplotlib
+matplotlib.use('Agg')
+
 from matplotlib import pyplot as plt
 
 from plot_helpers import create_fig
@@ -36,6 +39,24 @@ def plot_uniform(data, k, precision, max_lambd):
 		uni_port = uniform(n, k)
 		ri, ret = cvxpy_fit(mean, cov, [uni_port])
 		ax.plot(ri, ret, 'ro', markersize=3, markeredgecolor='k', label='Randomized portfolios')
+	save_image(fig, ax)
+
+def plot_uniform_and_naive(data, k, precision, max_lambd):
+	mean = np.mean(data, axis=1)
+	cov = np.cov(data)
+	title = 'Efficient frontier and randomized portfolios'
+	fig, ax = create_fig(title, 'Standard deviation', 'Expectation')
+
+	eff_front(data, k, precision, max_lambd, mean, cov, ax)
+
+	n, d = data.shape
+	for i in range(1000):
+		uni_port = uniform(n, k)
+		ri, ret = cvxpy_fit(mean, cov, uni_port)
+		ax.plot(ri, ret, 'ro', markersize=3, markeredgecolor='k', label='Randomized ' + str(k) + '-portfolios')
+	naive_port = np.repeat(1/n, n)
+	naive_ri, naive_ret = cvxpy_fit(mean, cov, [naive_port])
+	ax.plot(naive_ri, naive_ret, 'bo', markersize=3, markeredgecolor='k', label='Naive portfolio')
 	save_image(fig, ax)
 
 
@@ -96,8 +117,9 @@ def plot_new_window(risks, returns, s0, m0, alpha):
 	plt.show()
 
 
-#data = np.load('sp332.ndarray')
-data = sp_data_remove_outliers()
+data = np.load('sp332.ndarray')
+#data = sp_data_remove_outliers()
 #plot_uniform(data, 50, 100, .2)
 #plot_return_weighted(data, 50, 100, .2)
-plot_markowitz_randomized(data, 10, 1000, 10, 0.2, .001, .018)
+#plot_markowitz_randomized(data, 10, 1000, 10, 0.2, .001, .018)
+plot_uniform_and_naive(data, 50, 100, .2)

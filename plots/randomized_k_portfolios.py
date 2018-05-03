@@ -177,7 +177,7 @@ def asset_update(k, mean, cov, mu0, sigma0, alpha=0.1, e=1e-7):
 	plt.plot(x, y)
 	return RPIR, s0, m0
 
-a,s,m=asset_update(10,mean,cov,0.0012,0.014,alpha=0.3)
+#a,s,m=asset_update(10,mean,cov,0.0012,0.014,alpha=0.3)
 
 def initial_borders(risks, returns, alpha=0.01, gamma=0.8):
 	a = 0
