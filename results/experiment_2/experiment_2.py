@@ -2,7 +2,7 @@ import numpy as np
 from src.solvers import normalized_unconstrained_lasso
 from src.solvers import cvxpy_fit
 
-def results(bin_i, bin_ii, indexes):
+def results_lasso(bin_i, bin_ii, indexes):
 	N = bin_i.shape[0]
 	w_naive = np.repeat(1/N, N)
 	sigma_w, mu_w = cvxpy_fit(bin_i.mean(axis=1), np.cov(bin_i), [w_naive])
